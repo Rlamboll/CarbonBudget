@@ -23,8 +23,9 @@ tcre_mean = (0.2 + 0.7) / 2000
 # The standard deviation of the distribution of TCRE.
 tcre_sd = (0.7 - 0.2) / 2000
 # CO2 emissions from temperature-dependent Earth feedback loops. (Units: GtCO2)
-earth_feedback_co2 = 100
+earth_feedback_co2 = 0
 # We will present the budgets at these quantiles.
+recent_emissions = -290
 quantiles_to_report = np.array([0.33, 0.5, 0.66])
 # Output file location.
 output_file = "../Output/budget_calculation.csv"
@@ -44,6 +45,7 @@ for dT_target in dT_targets:
     budgets = src.budget_calculator_functions.calculate_budget(
         dT_target, zec, historical_dT, non_co2_dT, tcres, earth_feedback_co2
     )
+    budgets = budgets + recent_emissions
     budget_quantiles.loc[dT_target] = np.quantile(budgets, quantiles_to_report)
 
 # Save output
