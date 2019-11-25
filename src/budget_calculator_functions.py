@@ -1,10 +1,5 @@
 def calculate_budget(
-        dT_target,
-        zec,
-        historical_dT,
-        non_co2_dT,
-        tcre,
-        earth_feedback_co2,
+    dT_target, zec, historical_dT, non_co2_dT, tcre, earth_feedback_co2
 ):
     """
 
@@ -20,5 +15,4 @@ def calculate_budget(
     """
 
     remaining_dT = dT_target - zec - non_co2_dT - historical_dT
-    return remaining_dT/tcre - earth_feedback_co2
-
+    return remaining_dT / tcre - earth_feedback_co2
