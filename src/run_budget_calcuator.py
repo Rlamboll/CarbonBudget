@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-import src.distributions_of_inputs
-import src.budget_calculator_functions
+import src.distributions_of_inputs as distributions
+import src.budget_calculator_functions as budget_func
 
 
 # Input values
@@ -16,7 +16,7 @@ zec = 0.0
 # The temperature difference already seen. (Units: C)
 historical_dT = 1.0
 # The non-carbon contributions to temperature change. (Units: C)
-non_co2_dT = 0.15
+non_co2_dT_file = "../InputData/AR6comptibleMAGICCsetup.csv"
 # The mean of the distribution of TCRE. We use units of C per GtCO2.
 # (TCRE = Transient climate response to cumulative carbon emissions)
 tcre_mean = (0.2 + 0.7) / 2000
@@ -31,18 +31,17 @@ quantiles_to_report = np.array([0.33, 0.5, 0.66])
 output_file = "../Output/budget_calculation.csv"
 
 # ______________________________________________________________________________________
-
 # The parts below should not need editing
 
 budget_quantiles = pd.DataFrame(index=dT_targets, columns=quantiles_to_report)
 budget_quantiles.index.name = "dT_targets"
 # We interpret the higher quantiles as meaning a smaller budget
 quantiles_to_report = 1 - quantiles_to_report
-
+non_co2_dT_interp = distributions.establish_temp_dependence(non_co2_dT_file, dT_targets-historical_dT)
 for dT_target in dT_targets:
-    tcres = src.distributions_of_inputs.tcre_distribution(tcre_mean, tcre_sd, n_loops)
-
-    budgets = src.budget_calculator_functions.calculate_budget(
+    non_co2_dT = non_co2_dT_interp.loc[dT_target]
+    tcres = distributions.tcre_distribution(tcre_mean, tcre_sd, n_loops)
+    budgets = budget_func.calculate_budget(
         dT_target, zec, historical_dT, non_co2_dT, tcres, earth_feedback_co2
     )
     budgets = budgets + recent_emissions
