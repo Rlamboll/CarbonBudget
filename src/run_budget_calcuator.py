@@ -63,16 +63,18 @@ magicc_db = distributions.load_data_from_MAGICC(
     scenario_col,
     year_col,
 )
-non_co2_dT_magicc = distributions.establish_temp_dependence(
+non_co2_dT_fair = distributions.load_data_from_FaIR(
+    fair_anthro_folder,
+    fair_co2_only_folder,
     magicc_db,
-    dT_targets-historical_dT,
-    magicc_non_co2_col,
-    magicc_temp_col,
-)
-non_co2_dT_fair = distributions.load_data_from_FaIR(fair_anthro_folder, fair_co2_only_folder, magicc_db, model_col,
+    model_col,
     scenario_col,
-    year_col,)
-# TODO: include FaIR non-CO2 contributions.
+    year_col,
+)
+non_co2_dT_magicc = distributions.establish_temp_dependence(
+    magicc_db, dT_targets - historical_dT, magicc_non_co2_col, magicc_temp_col
+)
+# TODO: include FaIR in non-CO2 estimates
 for dT_target in dT_targets:
     non_co2_dT = non_co2_dT_magicc.loc[dT_target - historical_dT]
     tcres = distributions.tcre_distribution(tcre_mean, tcre_sd, n_loops)
