@@ -31,6 +31,8 @@ def load_data_from_FaIR(
     model_col,
     scenario_col,
     year_col,
+    magicc_non_co2_col,
+    magicc_temp_col,
     offset_years,
 ):
     all_files = os.listdir(folder_all)
@@ -108,10 +110,12 @@ def load_data_from_FaIR(
             and only_co2_temp > 0
             and only_co2_offset > 0
         ), "Does the database really contain a negative temperature change?"
+    temp_no_co2_dbs = np.array(temp_all_dbs) - temp_only_co2_dbs
     assert all(x > 0 for x in temp_all_dbs) and all(
         x > 0 for x in temp_only_co2_dbs
     ), "Does the database really contain a negative temperature change?"
     dbs = pd.DataFrame(
-        {"temp_all": temp_all_dbs, "temp_CO2": temp_only_co2_dbs}, dtype="float32"
+        {magicc_temp_col: temp_all_dbs, magicc_non_co2_col: temp_no_co2_dbs},
+        dtype="float32",
     )
     return dbs

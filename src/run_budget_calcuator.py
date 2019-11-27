@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import src.distributions_of_inputs as distributions
 import src.budget_calculator_functions as budget_func
-
+import matplotlib.pyplot as plt
 
 # Input values
 # ______________________________________________________________________________________
@@ -23,11 +23,15 @@ tcre_mean = (0.2 + 0.7) / 2000
 tcre_sd = (0.7 - 0.2) / 2000
 # CO2 emissions from temperature-dependent Earth feedback loops. (Units: GtCO2)
 earth_feedback_co2 = 0
-# We will present the budgets at these quantiles.
-recent_emissions = -290
+# Any emissions that have taken place too recently to have factored into the measured
+# temperature change, and therefore must be subtracted from the budget (Units: GtCO2)
+recent_emissions = 290
+# We will present the budgets at these quantiles of the TCRE.
 quantiles_to_report = np.array([0.33, 0.5, 0.66])
-# Output file location.
+# Output file location for budget data.
 output_file = "../Output/budget_calculation.csv"
+# Output location for figure of peak warming vs non-CO2 warming
+output_figure_file = "../Output/non_co2_cont_to_peak_warming.png"
 
 #   Information for reading in files:
 #   MAGICC files
@@ -38,15 +42,17 @@ non_co2_magicc_file = "../InputData/AR6comptibleMAGICCsetup.csv"
 magicc_non_co2_col = "non-co2 warming (rel. to 2010-2019) at peak cumulative emissions co2 (rel. to 2015-2015)"
 # The name of the column containing the surface temperature of interest
 magicc_temp_col = "peak surface temperature (rel. to 2010-2019)"
-#
+# Names of the model, scenario and year columns in the MAGICC database
 model_col = "model"
 scenario_col = "scenario"
 year_col = "peak cumulative emissions co2 (rel. to 2015-2015) year"
 
 #   FaIR files
-# The file for the unscaled anthropological temperature changes
+# The folders for the unscaled anthropological temperature changes files (many nc files)
 fair_anthro_folder = "../InputData/fair141_sr15_ar6fodsetup/FAIR141anthro_unscaled/"
 fair_co2_only_folder = "../InputData/fair141_sr15_ar6fodsetup/FAIR141CO2_unscaled/"
+# Years over which we set the average temperature to 0. This should be the same as the
+# MAGICC data uses. Note that the upper limit of the range is not included in python.
 fair_offset_years = np.arange(2010, 2020, 1)
 
 # ______________________________________________________________________________________
@@ -71,20 +77,35 @@ non_co2_dT_fair = distributions.load_data_from_FaIR(
     model_col,
     scenario_col,
     year_col,
+    magicc_non_co2_col,
+    magicc_temp_col,
     fair_offset_years,
 )
-non_co2_dT_magicc = distributions.establish_temp_dependence(
-    magicc_db, dT_targets - historical_dT, magicc_non_co2_col, magicc_temp_col
+all_non_co2_db = magicc_db[[magicc_non_co2_col, magicc_temp_col]].append(
+    non_co2_dT_fair
+)
+non_co2_dTs = distributions.establish_temp_dependence(
+    all_non_co2_db, dT_targets - historical_dT, magicc_non_co2_col, magicc_temp_col
 )
 # TODO: include FaIR in non-CO2 estimates
 for dT_target in dT_targets:
-    non_co2_dT = non_co2_dT_magicc.loc[dT_target - historical_dT]
+    non_co2_dT = non_co2_dTs.loc[dT_target - historical_dT]
     tcres = distributions.tcre_distribution(tcre_mean, tcre_sd, n_loops)
     budgets = budget_func.calculate_budget(
         dT_target, zec, historical_dT, non_co2_dT, tcres, earth_feedback_co2
     )
-    budgets = budgets + recent_emissions
+    budgets = budgets - recent_emissions
     budget_quantiles.loc[dT_target] = np.quantile(budgets, quantiles_to_report)
 
 # Save output
 budget_quantiles.to_csv(output_file)
+
+plt.close()
+fig = plt.figure(figsize=(16, 9))
+ax = fig.add_subplot(111)
+plt.scatter(magicc_db[magicc_temp_col], magicc_db[magicc_non_co2_col])
+plt.scatter(non_co2_dT_fair[magicc_temp_col], non_co2_dT_fair[magicc_non_co2_col])
+plt.legend("MAGICC", "FaIR")
+plt.ylabel(magicc_non_co2_col)
+plt.xlabel(magicc_temp_col)
+plt.savefig(output_figure_file)
