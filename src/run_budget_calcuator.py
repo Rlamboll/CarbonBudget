@@ -47,6 +47,7 @@ year_col = "peak cumulative emissions co2 (rel. to 2015-2015) year"
 # The file for the unscaled anthropological temperature changes
 fair_anthro_folder = "../InputData/fair141_sr15_ar6fodsetup/FAIR141anthro_unscaled/"
 fair_co2_only_folder = "../InputData/fair141_sr15_ar6fodsetup/FAIR141CO2_unscaled/"
+fair_offset_years = np.arange(2010, 2020, 1)
 
 # ______________________________________________________________________________________
 # The parts below should not need editing
@@ -70,6 +71,7 @@ non_co2_dT_fair = distributions.load_data_from_FaIR(
     model_col,
     scenario_col,
     year_col,
+    fair_offset_years,
 )
 non_co2_dT_magicc = distributions.establish_temp_dependence(
     magicc_db, dT_targets - historical_dT, magicc_non_co2_col, magicc_temp_col

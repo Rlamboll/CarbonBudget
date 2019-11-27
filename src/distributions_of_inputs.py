@@ -25,7 +25,13 @@ def load_data_from_MAGICC(
 
 
 def load_data_from_FaIR(
-    folder_all, folder_co2_only, desired_scenarios_db, model_col, scenario_col, year_col
+    folder_all,
+    folder_co2_only,
+    desired_scenarios_db,
+    model_col,
+    scenario_col,
+    year_col,
+    offset_years,
 ):
     all_files = os.listdir(folder_all)
     CO2_only_files = os.listdir(folder_co2_only)
@@ -69,14 +75,42 @@ def load_data_from_FaIR(
             "and the expected year, but there are {}".format(sum(time_ind))
         )
         time_ind = time_ind[0]
-        temp_all_dbs.append(
-            pd.DataFrame(open_link_all["temp"][time_ind, ::1]).mean(axis=1)
+        offset_inds = np.where(
+            [y in offset_years for y in open_link_all.variables["time"][:]]
+        )[0]
+        assert len(offset_inds) == len(
+            offset_years
+        ), "We found the wrong number of offset years in the database."
+        all_temp = (
+            pd.DataFrame(open_link_all["temp"][time_ind, ::1]).mean(axis=0).mean(axis=0)
         )
+        all_offset = (
+            pd.DataFrame(open_link_all["temp"][offset_inds, ::1])
+            .mean(axis=0)
+            .mean(axis=0)
+        )
+        temp_all_dbs.append(all_temp - all_offset)
         open_link_co2_only = netCDF4.Dataset(folder_co2_only + file)
-        temp_only_co2_dbs.append(
-            pd.DataFrame(open_link_co2_only["temp"][time_ind, ::1]).mean(axis=1)
+        only_co2_temp = (
+            pd.DataFrame(open_link_co2_only["temp"][time_ind, ::1])
+            .mean(axis=0)
+            .mean(axis=0)
         )
-        # TODO: calculate offsets
+        only_co2_offset = (
+            pd.DataFrame(open_link_co2_only["temp"][offset_inds, ::1])
+            .mean(axis=0)
+            .mean(axis=0)
+        )
+        temp_only_co2_dbs.append(only_co2_temp - only_co2_offset)
+        assert (
+            all_offset > 0
+            and all_temp > 0
+            and only_co2_temp > 0
+            and only_co2_offset > 0
+        ), "Does the database really contain a negative temperature change?"
+    assert all(x > 0 for x in temp_all_dbs) and all(
+        x > 0 for x in temp_only_co2_dbs
+    ), "Does the database really contain a negative temperature change?"
     dbs = pd.DataFrame(
         {"temp_all": temp_all_dbs, "temp_CO2": temp_only_co2_dbs}, dtype="float32"
     )
