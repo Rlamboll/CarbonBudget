@@ -3,12 +3,35 @@ import os
 import netCDF4
 import numpy as np
 import pandas as pd
+import scipy.stats
 
 
-def tcre_distribution(mean, sd, n_return, tcre_dist):
+def tcre_distribution(low, high, likelihood, n_return, tcre_dist):
+    assert high > low, "High and low limits are the wrong way around"
     if tcre_dist == "normal":
+        # We want a normal distribution such that we are between low and high with a
+        # given likelihood.
+        mean = (high + low) / 2
+        # find the normalised z score that gives a normal cdf with given likelihood of
+        # being between the required high and low values
+        z = scipy.stats.norm.ppf((1+likelihood)/2)
+        sd = (high - mean) / z
         return np.random.normal(mean, sd, n_return)
-    elif tcre_dist == "lognormal":
+    elif tcre_dist == "lognormal mean match":
+        mean = (high + low) / 2
+        assert mean > 0, "lognormal distributions are always positive"
+        z = scipy.stats.norm.ppf((1 + likelihood) / 2)
+        sd = (high - mean) / z
+        # The lognormal function takes arguments of the underlying mu and sigma values,
+        # which are not the same as the actual mean and s.d., so we convert below
+        # Derive relations from: mean = exp(mu + sigma^2/2),
+        # sd = (exp(sigma^2) - 1)^0.5 * exp(mu + sigma^2/2)
+        sigma = (np.log(1 + (sd/mean)**2))**0.5
+        mu = np.log(mean) - sigma**2/2
+        #mu = np.log(mean**2 / (sd**2 + mean**2)**0.5)
+        return np.random.lognormal(mean=mu, sigma=sigma, size=n_return)
+    elif tcre_dist == "lognormal likely":
+        mean = (high + low) / 2
         assert mean > 0, "lognormal distributions are always positive"
         # The lognormal function takes arguments of the underlying mu and sigma values,
         # which are not the same as the actual mean and s.d., so we convert below
@@ -19,7 +42,7 @@ def tcre_distribution(mean, sd, n_return, tcre_dist):
         #mu = np.log(mean**2 / (sd**2 + mean**2)**0.5)
         return np.random.lognormal(mean=mu, sigma=sigma, size=n_return)
     raise ValueError(
-        "tcre_dist must be either normal or lognormal, it was {}".format(tcre_dist)
+        "tcre_dist must be either normal, lognormal mean match or lognormal, it was {}".format(tcre_dist)
     )
 
 def establish_temp_dependence(db, temps, non_co2_col, temp_col):
