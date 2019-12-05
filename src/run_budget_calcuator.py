@@ -16,13 +16,16 @@ n_loops = 1000000
 zec = 0.0
 # The temperature difference already seen. (Units: C)
 historical_dT = 1.0
+# The distribution of the TCRE function - either "normal" or "lognormal"
+tcre_dist = "normal"
 # The mean of the distribution of TCRE. We use units of C per GtCO2.
 # (TCRE = Transient climate response to cumulative carbon emissions)
 tcre_mean = (0.2 + 0.7) / 2000
 # The standard deviation of the distribution of TCRE.
 tcre_sd = (0.7 - 0.2) / 2000
-# CO2 emissions from temperature-dependent Earth feedback loops. (Units: GtCO2)
-earth_feedback_co2 = 0
+# CO2 emissions per degree C from temperature-dependent Earth feedback loops.
+# (Units: GtCO2/C)
+earth_feedback_co2_per_C = 0
 # Any emissions that have taken place too recently to have factored into the measured
 # temperature change, and therefore must be subtracted from the budget (Units: GtCO2)
 recent_emissions = 290
@@ -33,7 +36,7 @@ output_file = "../Output/budget_calculation.csv"
 # Output location for figure of peak warming vs non-CO2 warming
 output_figure_file = "../Output/non_co2_cont_to_peak_warming.png"
 
-#   Information for reading in files:
+#   Information for reading in files used to calculate non-CO2 component:
 #   MAGICC files
 # The file in which we find the MAGICC model estimate for the non-carbon contributions
 # to temperature change. (Units: C)
@@ -89,8 +92,11 @@ non_co2_dTs = distributions.establish_temp_dependence(
 )
 # TODO: include FaIR in non-CO2 estimates
 for dT_target in dT_targets:
+    earth_feedback_co2 = budget_func.calculate_earth_system_feedback_co2(
+        dT_target, earth_feedback_co2_per_C
+    )
     non_co2_dT = non_co2_dTs.loc[dT_target - historical_dT]
-    tcres = distributions.tcre_distribution(tcre_mean, tcre_sd, n_loops)
+    tcres = distributions.tcre_distribution(tcre_mean, tcre_sd, n_loops, tcre_dist)
     budgets = budget_func.calculate_budget(
         dT_target, zec, historical_dT, non_co2_dT, tcres, earth_feedback_co2
     )

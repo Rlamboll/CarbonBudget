@@ -5,9 +5,14 @@ import numpy as np
 import pandas as pd
 
 
-def tcre_distribution(mean, sd, n_return=1):
-    return np.random.normal(mean, sd, n_return)
-
+def tcre_distribution(mean, sd, n_return, tcre_dist):
+    if tcre_dist == "normal":
+        return np.random.normal(mean, sd, n_return)
+    elif tcre_dist == "lognormal":
+        return np.random.lognormal(mean, sd, n_return)
+    raise ValueError(
+        "tcre_dist must be either normal or lognormal, it was {}".format(tcre_dist)
+    )
 
 def establish_temp_dependence(db, temps, non_co2_col, temp_col):
     regres = np.polyfit(db[temp_col], db[non_co2_col], 1)

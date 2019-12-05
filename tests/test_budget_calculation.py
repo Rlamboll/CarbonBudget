@@ -62,3 +62,11 @@ def test_mismanaged_mixed_calculation_of_budgets():
         budget = src.budget_calculator_functions.calculate_budget(
             dT_target, zec, historical_dT, non_co2_dT, tcre, earth_feedback_co2
         )
+
+def test_calculate_earth_syst():
+    not_zero = 1000
+    feedback = src.budget_calculator_functions.calculate_earth_system_feedback_co2(0, not_zero)
+    assert feedback == 0
+    two = 2
+    feedback = src.budget_calculator_functions.calculate_earth_system_feedback_co2(two, not_zero)
+    assert feedback == two * not_zero

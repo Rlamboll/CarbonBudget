@@ -16,3 +16,14 @@ def calculate_budget(
 
     remaining_dT = dT_target - zec - non_co2_dT - historical_dT
     return remaining_dT / tcre - earth_feedback_co2
+
+def calculate_earth_system_feedback_co2(
+        dtemp, co2_per_degree
+):
+    """
+
+    :param dtemp: the additional warming expected
+    :param co2_per_degree: the amount of CO2 emitted per additional degree of warming
+    :return: CO2 emitted by earth systems feedback
+    """
+    return dtemp * co2_per_degree
