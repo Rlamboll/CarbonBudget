@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 # The target temperature changes to achieve. (Units: C)
 dT_targets = np.arange(1.1, 2.2, 0.1)
 # The number of loops performed for each temperature
-n_loops = 10000000
+n_loops = 5000000
 # The change in temperature that will occur after zero emissions has been reached.
 # (Units: C)
 zec = 0.0
@@ -20,7 +20,7 @@ historical_dT = 1.0
 # "lognormal likely". The latter two cases are lognormal distributions, in the first
 # case matching the mean and sd of the normal distribution, in the second case matching
 # the likelihood
-tcre_dist = "normal"
+tcre_dist = "lognormal mean match"
 # The mean of the distribution of TCRE. We use units of C per GtCO2.
 # (TCRE = Transient climate response to cumulative carbon emissions)
 tcre_low = 0.2 / 1000

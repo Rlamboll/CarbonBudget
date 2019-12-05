@@ -53,15 +53,14 @@ def test_tcre_lognormal_pde_distribution():
     low = 0.8
     high = 2.5
     likelihood = 0.6827  # we use the 1-sigma range
-    normal_mean = (0.8 + 2.5) / 2
-    normal_sd = (2.5 - 0.8) / 2
+    # The median value is the geometric mean
+    expected_median = (0.8 * 2.5)**0.5
     n_return = 1000000
     distn = "lognormal"
     returned = distributions.tcre_distribution(
         low, high, likelihood, n_return=n_return, tcre_dist=distn,
     )
-    assert abs(np.mean(returned) - normal_mean) < 0.005
-    assert abs(np.std(returned) - normal_sd) < 0.005
+    assert abs(np.median(returned) - expected_median) < 0.005
     assert sum(returned < 0) == 0
     likely_fraction = 1 - (sum(0.8 > returned) + sum(2.5 < returned)) / len(returned)
-    assert likely_fraction > likelihood
+    assert abs(likely_fraction - likelihood) < 0.01
