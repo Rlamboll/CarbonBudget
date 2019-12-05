@@ -9,7 +9,15 @@ def tcre_distribution(mean, sd, n_return, tcre_dist):
     if tcre_dist == "normal":
         return np.random.normal(mean, sd, n_return)
     elif tcre_dist == "lognormal":
-        return np.random.lognormal(mean, sd, n_return)
+        assert mean > 0, "lognormal distributions are always positive"
+        # The lognormal function takes arguments of the underlying mu and sigma values,
+        # which are not the same as the actual mean and s.d., so we convert below
+        # Derive relations from: mean = exp(mu + sigma^2/2),
+        # sd = (exp(sigma^2) - 1)^0.5 * exp(mu + sigma^2/2)
+        sigma = (np.log(1 + (sd/mean)**2))**0.5
+        mu = np.log(mean) - sigma**2/2
+        #mu = np.log(mean**2 / (sd**2 + mean**2)**0.5)
+        return np.random.lognormal(mean=mu, sigma=sigma, size=n_return)
     raise ValueError(
         "tcre_dist must be either normal or lognormal, it was {}".format(tcre_dist)
     )
