@@ -10,17 +10,17 @@ import matplotlib.pyplot as plt
 # The target temperature changes to achieve. (Units: C)
 dT_targets = np.arange(1.1, 2.2, 0.1)
 # The number of loops performed for each temperature
-n_loops = 5000000
+n_loops = 10000000
 # The change in temperature that will occur after zero emissions has been reached.
 # (Units: C)
 zec = 0.0
 # The temperature difference already seen. (Units: C)
 historical_dT = 1.0
 # The distribution of the TCRE function - either "normal". "lognormal mean match" or
-# "lognormal likely". The latter two cases are lognormal distributions, in the first
-# case matching the mean and sd of the normal distribution, in the second case matching
-# the likelihood
-tcre_dist = "lognormal mean match"
+# "lognormal". The latter two cases are lognormal distributions, in the first
+# case matching the mean and sd of the normal distribution which fits the likelihood,
+# in the second case matching the likelihood.
+tcre_dist = "lognormal"
 # The mean of the distribution of TCRE. We use units of C per GtCO2.
 # (TCRE = Transient climate response to cumulative carbon emissions)
 tcre_low = 0.2 / 1000
@@ -96,7 +96,7 @@ all_non_co2_db = magicc_db[[magicc_non_co2_col, magicc_temp_col]].append(
 non_co2_dTs = distributions.establish_temp_dependence(
     all_non_co2_db, dT_targets - historical_dT, magicc_non_co2_col, magicc_temp_col
 )
-# TODO: include FaIR in non-CO2 estimates
+
 for dT_target in dT_targets:
     earth_feedback_co2 = budget_func.calculate_earth_system_feedback_co2(
         dT_target, earth_feedback_co2_per_C
@@ -109,7 +109,10 @@ for dT_target in dT_targets:
     budgets = budgets - recent_emissions
     budget_quantiles.loc[dT_target] = np.quantile(budgets, quantiles_to_report)
 
-# Save output
+# Save output in the correct format
+budget_quantiles = budget_quantiles.reset_index()
+budget_quantiles["Future_warming"] = budget_quantiles["dT_targets"] - historical_dT
+budget_quantiles = budget_quantiles.set_index("Future_warming")
 budget_quantiles.to_csv(output_file)
 
 plt.close()
