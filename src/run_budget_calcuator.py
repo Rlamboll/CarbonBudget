@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 # ______________________________________________________________________________________
 
 # The target temperature changes to achieve. (Units: C)
-dT_targets = np.arange(1.1, 2.2, 0.1)
+dT_targets = np.arange(1.1, 2.6, 0.1)
 # The number of loops performed for each temperature
 n_loops = 10000000
 # The change in temperature that will occur after zero emissions has been reached.
@@ -20,7 +20,7 @@ historical_dT = 1.1
 # "lognormal". The latter two cases are lognormal distributions, in the first
 # case matching the mean and sd of the normal distribution which fits the likelihood,
 # in the second case matching the likelihood.
-tcre_dist = "normal"
+tcre_dist = "lognormal"
 # The mean of the distribution of TCRE. We use units of C per GtCO2.
 # (TCRE = Transient climate response to cumulative carbon emissions)
 tcre_low = 0.8 / 3664
@@ -30,10 +30,10 @@ tcre_high = 2.5 / 3664
 likelihood = 0.6827
 # CO2 emissions per degree C from temperature-dependent Earth feedback loops.
 # (Units: GtCO2/C)
-earth_feedback_co2_per_C = 35
+earth_feedback_co2_per_C = 135
 # Any emissions that have taken place too recently to have factored into the measured
 # temperature change, and therefore must be subtracted from the budget (Units: GtCO2)
-recent_emissions = 290
+recent_emissions = 0
 # We will present the budgets at these quantiles of the TCRE.
 quantiles_to_report = np.array([0.33, 0.5, 0.66])
 # Output file location for budget data. Includes {} sections detailing inclusion of
@@ -42,7 +42,7 @@ output_file = "../Output/budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}.csv
 # Output location for figure of peak warming vs non-CO2 warming
 output_figure_file = "../Output/non_co2_cont_to_peak_warming.pdf"
 # Which lines should we fit to the graph?
-quantiles_to_plot = [0.05, 0.5, 0.95]
+quantiles_to_plot = [0.05, 0.95]
 
 #       Information for reading in files used to calculate non-CO2 component:
 
@@ -72,7 +72,7 @@ fair_offset_years = np.arange(2010, 2020, 1)
 # The parts below should not need editing
 
 # Should we include the magicc data?
-for case_ind in range(1):
+for case_ind in range(3):
     if case_ind == 0:
         include_magicc = True
         include_fair = True
@@ -123,7 +123,7 @@ for case_ind in range(1):
 
     for dT_target in dT_targets:
         earth_feedback_co2 = budget_func.calculate_earth_system_feedback_co2(
-            dT_target, earth_feedback_co2_per_C
+            dT_target - historical_dT, earth_feedback_co2_per_C
         )
         non_co2_dT = non_co2_dTs.loc[dT_target - historical_dT]
         tcres = distributions.tcre_distribution(tcre_low, tcre_high, likelihood, n_loops, tcre_dist)
@@ -148,6 +148,9 @@ plt.legend(["MAGICC", "FaIR"])
 plt.ylabel(magicc_non_co2_col)
 plt.xlabel(magicc_temp_col)
 collated_data = magicc_db[[magicc_temp_col, magicc_non_co2_col]].append(non_co2_dT_fair)
+x = collated_data[magicc_temp_col]
+y = collated_data[magicc_non_co2_col]
+plt.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)), color="black")
 quantiles_of_plot = budget_func.rolling_window_find_quantiles(
     xs=collated_data[magicc_temp_col],
     ys=collated_data[magicc_non_co2_col],

@@ -34,6 +34,20 @@ def test_calculate_multiple_budgets():
     assert all(abs(budget - expected) < 1e-15)
 
 
+def test_calculate_multiple_tcres():
+    dT_target = 1.5
+    zec = 0
+    historical_dT = 1.1
+    non_co2_dT = 0.108
+    tcre = np.random.normal(1.65 / 3664.0, 0.4 / 3664.0, 10000000)
+    earth_feedback_co2 = 54
+    budget = src.budget_calculator_functions.calculate_budget(
+        dT_target, zec, historical_dT, non_co2_dT, tcre, earth_feedback_co2
+    )
+    expected = 594.417
+    assert abs(np.median(budget) - expected) < 0.5
+
+
 def test_mixed_calculation_of_budgets():
     dT_target = np.array([2.5, 3.5])
     zec = 0.4
