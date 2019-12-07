@@ -20,7 +20,7 @@ historical_dT = 1.1
 # "lognormal". The latter two cases are lognormal distributions, in the first
 # case matching the mean and sd of the normal distribution which fits the likelihood,
 # in the second case matching the likelihood.
-tcre_dist = "lognormal"
+tcre_dist = "normal"
 # The mean of the distribution of TCRE. We use units of C per GtCO2.
 # (TCRE = Transient climate response to cumulative carbon emissions)
 tcre_low = 0.8 / 3664
@@ -40,7 +40,7 @@ quantiles_to_report = np.array([0.33, 0.5, 0.66])
 # TCRE, inclusion of magic/fair, and earth system feedback
 output_file = "../Output/budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}.csv"
 # Output location for figure of peak warming vs non-CO2 warming
-output_figure_file = "../Output/non_co2_cont_to_peak_warming.pdf"
+output_figure_file = "../Output/non_co2_cont_to_peak_warming_magicc_{}_fair_{}.pdf"
 # Which lines should we fit to the graph?
 quantiles_to_plot = [0.05, 0.95]
 
@@ -139,34 +139,40 @@ for case_ind in range(3):
     budget_quantiles = budget_quantiles.set_index("Future_warming")
     budget_quantiles.to_csv(output_file.format(tcre_dist, include_magicc, include_fair, earth_feedback_co2_per_C))
 
-plt.close()
-fig = plt.figure(figsize=(14, 7))
-ax = fig.add_subplot(111)
-plt.scatter(magicc_db[magicc_temp_col], magicc_db[magicc_non_co2_col])
-plt.scatter(non_co2_dT_fair[magicc_temp_col], non_co2_dT_fair[magicc_non_co2_col])
-plt.legend(["MAGICC", "FaIR"])
-plt.ylabel(magicc_non_co2_col)
-plt.xlabel(magicc_temp_col)
-collated_data = magicc_db[[magicc_temp_col, magicc_non_co2_col]].append(non_co2_dT_fair)
-x = collated_data[magicc_temp_col]
-y = collated_data[magicc_non_co2_col]
-plt.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)), color="black")
-quantiles_of_plot = budget_func.rolling_window_find_quantiles(
-    xs=collated_data[magicc_temp_col],
-    ys=collated_data[magicc_non_co2_col],
-    quantiles=quantiles_to_plot,
-    nwindows=10
-)
-x = quantiles_of_plot.index.values
-for col in quantiles_of_plot.columns:
-    y = quantiles_of_plot[col].values
-    if col == 0.5:
-        dashes = [1, 0]
-        color = "black"
-    else:
-        dashes = [6, 2]
-        color = "grey"
-    plt.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)), dashes=dashes, color=color)
+    plt.close()
+    fig = plt.figure(figsize=(14, 7))
+    ax = fig.add_subplot(111)
+    if include_magicc:
+        plt.scatter(magicc_db[magicc_temp_col], magicc_db[magicc_non_co2_col])
+    if include_fair:
+        plt.scatter(non_co2_dT_fair[magicc_temp_col], non_co2_dT_fair[magicc_non_co2_col])
+    plt.legend(["MAGICC", "FaIR"])
+    plt.ylabel(magicc_non_co2_col)
+    plt.xlabel(magicc_temp_col)
+    x = all_non_co2_db[magicc_temp_col]
+    y = all_non_co2_db[magicc_non_co2_col]
+    equation_of_fit = np.polyfit(x, y, 1)
+    plt.plot(np.unique(x), np.poly1d(equation_of_fit)(np.unique(x)), color="black")
+    equation_text = 'y = ' + str(round(equation_of_fit[0],4)) + 'x' ' + ' + str(round(equation_of_fit[1],4))
+    plt.text(0.9, 0.1, equation_text, horizontalalignment='center',
+         verticalalignment='center',
+         transform=ax.transAxes)
+    quantiles_of_plot = budget_func.rolling_window_find_quantiles(
+        xs=all_non_co2_db[magicc_temp_col],
+        ys=all_non_co2_db[magicc_non_co2_col],
+        quantiles=quantiles_to_plot,
+        nwindows=10
+    )
+    x = quantiles_of_plot.index.values
+    for col in quantiles_of_plot.columns:
+        y = quantiles_of_plot[col].values
+        if col == 0.5:
+            dashes = [1, 0]
+            color = "black"
+        else:
+            dashes = [6, 2]
+            color = "grey"
+        plt.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)), dashes=dashes, color=color)
 
-fig.savefig(output_figure_file, bbox_inches='tight')
+    fig.savefig(output_figure_file.format(include_magicc, include_fair), bbox_inches='tight')
 print("The analysis has completed.")
