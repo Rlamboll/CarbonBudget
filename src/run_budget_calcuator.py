@@ -20,14 +20,14 @@ historical_dT = 1.1
 # "lognormal". The latter two cases are lognormal distributions, in the first
 # case matching the mean and sd of the normal distribution which fits the likelihood,
 # in the second case matching the likelihood.
-tcre_dist = "normal"
+tcre_dist = "lognormal"
 # The mean of the distribution of TCRE. We use units of C per GtCO2.
 # (TCRE = Transient climate response to cumulative carbon emissions)
-tcre_low = 0.8 / 3664
+tcre_low = 1.1 / 3664
 # The standard deviation of the distribution of TCRE.
-tcre_high = 2.5 / 3664
+tcre_high = 2.2 / 3664
 # likelihood is the probability that results fit between the low and high value
-likelihood = 0.6827
+likelihood = 0.66
 # CO2 emissions per degree C from temperature-dependent Earth feedback loops.
 # (Units: GtCO2/C)
 earth_feedback_co2_per_C = 135
@@ -35,10 +35,10 @@ earth_feedback_co2_per_C = 135
 # temperature change, and therefore must be subtracted from the budget (Units: GtCO2)
 recent_emissions = 0
 # We will present the budgets at these quantiles of the TCRE.
-quantiles_to_report = np.array([0.33, 0.5, 0.66])
+quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
 # Output file location for budget data. Includes {} sections detailing inclusion of
 # TCRE, inclusion of magic/fair, and earth system feedback
-output_file = "../Output/budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}.csv"
+output_file = "../Output/budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}_likelihood_{}.csv"
 # Output location for figure of peak warming vs non-CO2 warming
 output_figure_file = "../Output/non_co2_cont_to_peak_warming_magicc_{}_fair_{}.pdf"
 # Which lines should we fit to the graph?
@@ -71,7 +71,25 @@ fair_offset_years = np.arange(2010, 2020, 1)
 # ______________________________________________________________________________________
 # The parts below should not need editing
 
-# Should we include the magicc data?
+magicc_db = distributions.load_data_from_MAGICC(
+    non_co2_magicc_file,
+    magicc_non_co2_col,
+    magicc_temp_col,
+    model_col,
+    scenario_col,
+    year_col,
+)
+non_co2_dT_fair = distributions.load_data_from_FaIR(
+    fair_anthro_folder,
+    fair_co2_only_folder,
+    magicc_db,
+    model_col,
+    scenario_col,
+    year_col,
+    magicc_non_co2_col,
+    magicc_temp_col,
+    fair_offset_years,
+)
 for case_ind in range(3):
     if case_ind == 0:
         include_magicc = True
@@ -86,26 +104,8 @@ for case_ind in range(3):
     budget_quantiles = pd.DataFrame(index=dT_targets, columns=quantiles_to_report)
     budget_quantiles.index.name = "dT_targets"
     # We interpret the higher quantiles as meaning a smaller budget
-    quantiles_to_report = 1 - quantiles_to_report
-    magicc_db = distributions.load_data_from_MAGICC(
-        non_co2_magicc_file,
-        magicc_non_co2_col,
-        magicc_temp_col,
-        model_col,
-        scenario_col,
-        year_col,
-    )
-    non_co2_dT_fair = distributions.load_data_from_FaIR(
-        fair_anthro_folder,
-        fair_co2_only_folder,
-        magicc_db,
-        model_col,
-        scenario_col,
-        year_col,
-        magicc_non_co2_col,
-        magicc_temp_col,
-        fair_offset_years,
-    )
+    inverse_quantiles_to_report = 1 - quantiles_to_report
+
     if include_fair and include_magicc:
         all_non_co2_db = magicc_db[[magicc_non_co2_col, magicc_temp_col]].append(
             non_co2_dT_fair
@@ -131,22 +131,34 @@ for case_ind in range(3):
             dT_target, zec, historical_dT, non_co2_dT, tcres, earth_feedback_co2
         )
         budgets = budgets - recent_emissions
-        budget_quantiles.loc[dT_target] = np.quantile(budgets, quantiles_to_report)
+        budget_quantiles.loc[dT_target] = np.quantile(budgets, inverse_quantiles_to_report)
 
     # Save output in the correct format
     budget_quantiles = budget_quantiles.reset_index()
     budget_quantiles["Future_warming"] = budget_quantiles["dT_targets"] - historical_dT
     budget_quantiles = budget_quantiles.set_index("Future_warming")
-    budget_quantiles.to_csv(output_file.format(tcre_dist, include_magicc, include_fair, earth_feedback_co2_per_C))
-
+    budget_quantiles.to_csv(output_file.format(tcre_dist, include_magicc, include_fair, earth_feedback_co2_per_C, likelihood))
+    temp_plot_limits = [
+        min(min(magicc_db[magicc_temp_col]), min(non_co2_dT_fair[magicc_temp_col])),
+        max(max(magicc_db[magicc_temp_col]), max(non_co2_dT_fair[magicc_temp_col]))
+    ]
+    non_co2_plot_limits = [
+        min(min(magicc_db[magicc_non_co2_col]), min(non_co2_dT_fair[magicc_non_co2_col])),
+        max(max(magicc_db[magicc_non_co2_col]), max(non_co2_dT_fair[magicc_non_co2_col]))
+    ]
     plt.close()
     fig = plt.figure(figsize=(14, 7))
     ax = fig.add_subplot(111)
+    legend_text = []
     if include_magicc:
-        plt.scatter(magicc_db[magicc_temp_col], magicc_db[magicc_non_co2_col])
+        plt.scatter(magicc_db[magicc_temp_col], magicc_db[magicc_non_co2_col], color="blue")
+        legend_text.append("MAGICC")
     if include_fair:
-        plt.scatter(non_co2_dT_fair[magicc_temp_col], non_co2_dT_fair[magicc_non_co2_col])
-    plt.legend(["MAGICC", "FaIR"])
+        plt.scatter(non_co2_dT_fair[magicc_temp_col], non_co2_dT_fair[magicc_non_co2_col], color="orange")
+        legend_text.append("FaIR")
+    plt.xlim(temp_plot_limits)
+    plt.ylim(non_co2_plot_limits)
+    plt.legend(legend_text)
     plt.ylabel(magicc_non_co2_col)
     plt.xlabel(magicc_temp_col)
     x = all_non_co2_db[magicc_temp_col]
