@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+
 def calculate_budget(
     dT_target, zec, historical_dT, non_co2_dT, tcre, earth_feedback_co2
 ):
@@ -20,9 +21,8 @@ def calculate_budget(
     remaining_dT = dT_target - zec - non_co2_dT - historical_dT
     return remaining_dT / tcre - earth_feedback_co2
 
-def calculate_earth_system_feedback_co2(
-        dtemp, co2_per_degree
-):
+
+def calculate_earth_system_feedback_co2(dtemp, co2_per_degree):
     """
 
     :param dtemp: the additional warming expected
@@ -30,6 +30,7 @@ def calculate_earth_system_feedback_co2(
     :return: CO2 emitted by earth systems feedback
     """
     return dtemp * co2_per_degree
+
 
 def rolling_window_find_quantiles(
     xs, ys, quantiles, nwindows=10, decay_length_factor=1
@@ -104,4 +105,3 @@ def rolling_window_find_quantiles(
                 ys[cumsum_weights >= quantiles[i_quantile]]
             )
     return quantmatrix
-

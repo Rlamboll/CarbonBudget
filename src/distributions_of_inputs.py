@@ -14,7 +14,7 @@ def tcre_distribution(low, high, likelihood, n_return, tcre_dist):
         mean = (high + low) / 2
         # find the normalised z score that gives a normal cdf with given likelihood of
         # being between the required high and low values
-        z = scipy.stats.norm.ppf((1+likelihood)/2)
+        z = scipy.stats.norm.ppf((1 + likelihood) / 2)
         sd = (high - mean) / z
         return np.random.normal(mean, sd, n_return)
     elif tcre_dist == "lognormal mean match":
@@ -26,8 +26,8 @@ def tcre_distribution(low, high, likelihood, n_return, tcre_dist):
         # which are not the same as the actual mean and s.d., so we convert below
         # Derive relations from: mean = exp(\mu + \sigma^2/2),
         # sd = (exp(\sigma^2) - 1)^0.5 * exp(\mu + \sigma^2/2)
-        sigma = (np.log(1 + (sd/mean)**2))**0.5
-        mu = np.log(mean) - sigma**2/2
+        sigma = (np.log(1 + (sd / mean) ** 2)) ** 0.5
+        mu = np.log(mean) - sigma ** 2 / 2
         return np.random.lognormal(mean=mu, sigma=sigma, size=n_return)
     elif tcre_dist == "lognormal":
         assert high > 0
@@ -38,9 +38,13 @@ def tcre_distribution(low, high, likelihood, n_return, tcre_dist):
         mu = 0.5 * np.log(low * high)
         sigma = 0.5 * np.log(high / low)
         return np.random.lognormal(mean=mu, sigma=sigma, size=n_return)
+    # If you haven't returned yet, something went wrong.
     raise ValueError(
-        "tcre_dist must be either normal, lognormal mean match or lognormal, it was {}".format(tcre_dist)
+        "tcre_dist must be either normal, lognormal mean match or lognormal, it was {}".format(
+            tcre_dist
+        )
     )
+
 
 def establish_temp_dependence(db, temps, non_co2_col, temp_col):
     regres = np.polyfit(db[temp_col], db[non_co2_col], 1)

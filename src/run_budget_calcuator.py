@@ -38,7 +38,9 @@ recent_emissions = 0
 quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
 # Output file location for budget data. Includes {} sections detailing inclusion of
 # TCRE, inclusion of magic/fair, earth system feedback and likelihood
-output_file = "../Output/budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}_likelihood_{}.csv"
+output_file = (
+    "../Output/budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}_likelihood_{}.csv"
+)
 # Output location for figure of peak warming vs non-CO2 warming
 output_figure_file = "../Output/non_co2_cont_to_peak_warming_magicc_{}_fair_{}.pdf"
 # Which lines should we fit to the graph?
@@ -129,26 +131,43 @@ for case_ind in range(3):
             dT_target - historical_dT, earth_feedback_co2_per_C
         )
         non_co2_dT = non_co2_dTs.loc[dT_target - historical_dT]
-        tcres = distributions.tcre_distribution(tcre_low, tcre_high, likelihood, n_loops, tcre_dist)
+        tcres = distributions.tcre_distribution(
+            tcre_low, tcre_high, likelihood, n_loops, tcre_dist
+        )
         budgets = budget_func.calculate_budget(
             dT_target, zec, historical_dT, non_co2_dT, tcres, earth_feedback_co2
         )
         budgets = budgets - recent_emissions
-        budget_quantiles.loc[dT_target] = np.quantile(budgets, inverse_quantiles_to_report)
+        budget_quantiles.loc[dT_target] = np.quantile(
+            budgets, inverse_quantiles_to_report
+        )
 
     # Save output in the correct format
     budget_quantiles = budget_quantiles.reset_index()
     budget_quantiles["Future_warming"] = budget_quantiles["dT_targets"] - historical_dT
     budget_quantiles = budget_quantiles.set_index("Future_warming")
-    budget_quantiles.to_csv(output_file.format(tcre_dist, include_magicc, include_fair, earth_feedback_co2_per_C, likelihood))
+    budget_quantiles.to_csv(
+        output_file.format(
+            tcre_dist,
+            include_magicc,
+            include_fair,
+            earth_feedback_co2_per_C,
+            likelihood,
+        )
+    )
     temp_plot_limits = [
         min(min(magicc_db[magicc_temp_col]), min(non_co2_dT_fair[magicc_temp_col])),
-        max(max(magicc_db[magicc_temp_col]), max(non_co2_dT_fair[magicc_temp_col]))
+        max(max(magicc_db[magicc_temp_col]), max(non_co2_dT_fair[magicc_temp_col])),
     ]
     non_co2_plot_limits = [
-        min(min(magicc_db[magicc_non_co2_col]), min(non_co2_dT_fair[magicc_non_co2_col])),
-        max(max(magicc_db[magicc_non_co2_col]), max(non_co2_dT_fair[magicc_non_co2_col]))
+        min(
+            min(magicc_db[magicc_non_co2_col]), min(non_co2_dT_fair[magicc_non_co2_col])
+        ),
+        max(
+            max(magicc_db[magicc_non_co2_col]), max(non_co2_dT_fair[magicc_non_co2_col])
+        ),
     ]
+
     def add_fringe(limits, fringe):
         # Helper function for adding a small amount either side of the limits
         assert len(limits) == 2
@@ -156,6 +175,7 @@ for case_ind in range(3):
         limits[0] = limits[0] - offset
         limits[1] = limits[1] + offset
         return limits
+
     temp_plot_limits = add_fringe(temp_plot_limits, 0.04)
     non_co2_plot_limits = add_fringe(non_co2_plot_limits, 0.04)
     plt.close()
@@ -163,10 +183,16 @@ for case_ind in range(3):
     ax = fig.add_subplot(111)
     legend_text = []
     if include_magicc:
-        plt.scatter(magicc_db[magicc_temp_col], magicc_db[magicc_non_co2_col], color="blue")
+        plt.scatter(
+            magicc_db[magicc_temp_col], magicc_db[magicc_non_co2_col], color="blue"
+        )
         legend_text.append("MAGICC")
     if include_fair:
-        plt.scatter(non_co2_dT_fair[magicc_temp_col], non_co2_dT_fair[magicc_non_co2_col], color="orange")
+        plt.scatter(
+            non_co2_dT_fair[magicc_temp_col],
+            non_co2_dT_fair[magicc_non_co2_col],
+            color="orange",
+        )
         legend_text.append("FaIR")
     plt.xlim(temp_plot_limits)
     plt.ylim(non_co2_plot_limits)
@@ -178,15 +204,22 @@ for case_ind in range(3):
     equation_of_fit = np.polyfit(x, y, 1)
     all_fit_lines.append(equation_of_fit)
     plt.plot(np.unique(x), np.poly1d(equation_of_fit)(np.unique(x)), color="black")
-    equation_text = 'y = ' + str(round(equation_of_fit[0], 4)) + 'x' ' + ' + str(round(equation_of_fit[1], 4))
-    plt.text(0.9, 0.1, equation_text, horizontalalignment='center',
-         verticalalignment='center',
-         transform=ax.transAxes)
+    equation_text = "y = " + str(round(equation_of_fit[0], 4)) + "x" " + " + str(
+        round(equation_of_fit[1], 4)
+    )
+    plt.text(
+        0.9,
+        0.1,
+        equation_text,
+        horizontalalignment="center",
+        verticalalignment="center",
+        transform=ax.transAxes,
+    )
     quantiles_of_plot = budget_func.rolling_window_find_quantiles(
         xs=all_non_co2_db[magicc_temp_col],
         ys=all_non_co2_db[magicc_non_co2_col],
         quantiles=quantiles_to_plot,
-        nwindows=10
+        nwindows=10,
     )
     x = quantiles_of_plot.index.values
     for col in quantiles_of_plot.columns:
@@ -197,9 +230,16 @@ for case_ind in range(3):
         else:
             dashes = [6, 2]
             color = "grey"
-        plt.plot(np.unique(x), np.poly1d(np.polyfit(x, y, 1))(np.unique(x)), dashes=dashes, color=color)
+        plt.plot(
+            np.unique(x),
+            np.poly1d(np.polyfit(x, y, 1))(np.unique(x)),
+            dashes=dashes,
+            color=color,
+        )
 
-    fig.savefig(output_figure_file.format(include_magicc, include_fair), bbox_inches='tight')
+    fig.savefig(
+        output_figure_file.format(include_magicc, include_fair), bbox_inches="tight"
+    )
 plt.close()
 # Plot all trendlines together
 x = temp_plot_limits
