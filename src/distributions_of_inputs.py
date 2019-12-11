@@ -1,5 +1,4 @@
 import os
-
 import netCDF4
 import numpy as np
 import pandas as pd
@@ -46,7 +45,14 @@ def tcre_distribution(low, high, likelihood, n_return, tcre_dist):
     )
 
 
-def establish_temp_dependence(db, temps, non_co2_col, temp_col):
+def establish_median_temp_dep(models, temps):
+    return pd.Series(
+        index=temps,
+        data=models['b'].loc[models['quantile'] == 0.5].iloc[0] * temps + models['a'].loc[models['quantile'] == 0.5].iloc[0]
+    )
+
+
+def establish_least_sq_temp_dependence(db, temps, non_co2_col, temp_col):
     regres = np.polyfit(db[temp_col], db[non_co2_col], 1)
     return pd.Series(index=temps, data=temps * regres[0] + regres[1])
 

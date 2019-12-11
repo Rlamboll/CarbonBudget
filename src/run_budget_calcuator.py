@@ -43,8 +43,14 @@ output_file = (
 )
 # Output location for figure of peak warming vs non-CO2 warming
 output_figure_file = "../Output/non_co2_cont_to_peak_warming_magicc_{}_fair_{}.pdf"
-# Which lines should we fit to the graph?
-quantiles_to_plot = [0.05, 0.95]
+# Quantile fit lines to plot on the graph.
+# If use_median_non_co2 == True, this must include 0.5, as we use this value
+quantiles_to_plot = [0.05, 0.5, 0.95]
+# How should we dot these lines? This list must be as long as quantiles_to_plot.
+line_dotting = ['--', '-', '--']
+# Should we use the median regression or the least-squares best fit for the non-CO2 relationship?
+use_median_non_co2 = True
+# Where should we save the results of the figure with only
 output_all_trends = "../Output/TrendLinesWithMagiccFairOrBoth.pdf"
 
 #       Information for reading in files used to calculate non-CO2 component:
@@ -121,10 +127,18 @@ for case_ind in range(3):
         all_non_co2_db = magicc_db[[magicc_non_co2_col, magicc_temp_col]]
     else:
         raise ValueError("You must include either magicc or fair data")
-
-    non_co2_dTs = distributions.establish_temp_dependence(
-        all_non_co2_db, dT_targets - historical_dT, magicc_non_co2_col, magicc_temp_col
-    )
+    if use_median_non_co2:
+        assert 0.5 in quantiles_to_plot, "The median value, quantiles_to_plot=0.5, " \
+                                         "must be included if use_median_non_co2==True"
+        x = all_non_co2_db[magicc_temp_col]
+        y = all_non_co2_db[magicc_non_co2_col]
+        xy_df = pd.DataFrame({'x': x, 'y': y})
+        quantile_reg_trends = budget_func.quantile_regression_find_relationships(xy_df, quantiles_to_plot)
+        non_co2_dTs = distributions.establish_median_temp_dep(quantile_reg_trends, dT_targets - historical_dT)
+    else:
+        non_co2_dTs = distributions.establish_least_sq_temp_dependence(
+            all_non_co2_db, dT_targets - historical_dT, magicc_non_co2_col, magicc_temp_col
+        )
 
     for dT_target in dT_targets:
         earth_feedback_co2 = budget_func.calculate_earth_system_feedback_co2(
@@ -199,44 +213,49 @@ for case_ind in range(3):
     plt.legend(legend_text)
     plt.ylabel(magicc_non_co2_col)
     plt.xlabel(magicc_temp_col)
-    x = all_non_co2_db[magicc_temp_col]
-    y = all_non_co2_db[magicc_non_co2_col]
-    equation_of_fit = np.polyfit(x, y, 1)
-    all_fit_lines.append(equation_of_fit)
-    plt.plot(np.unique(x), np.poly1d(equation_of_fit)(np.unique(x)), color="black")
-    equation_text = "y = " + str(round(equation_of_fit[0], 4)) + "x" " + " + str(
-        round(equation_of_fit[1], 4)
-    )
-    plt.text(
-        0.9,
-        0.1,
-        equation_text,
-        horizontalalignment="center",
-        verticalalignment="center",
-        transform=ax.transAxes,
-    )
-    quantiles_of_plot = budget_func.rolling_window_find_quantiles(
-        xs=all_non_co2_db[magicc_temp_col],
-        ys=all_non_co2_db[magicc_non_co2_col],
-        quantiles=quantiles_to_plot,
-        nwindows=10,
-    )
-    x = quantiles_of_plot.index.values
-    for col in quantiles_of_plot.columns:
-        y = quantiles_of_plot[col].values
-        if col == 0.5:
-            dashes = [1, 0]
-            color = "black"
-        else:
-            dashes = [6, 2]
-            color = "grey"
-        plt.plot(
-            np.unique(x),
-            np.poly1d(np.polyfit(x, y, 1))(np.unique(x)),
-            dashes=dashes,
-            color=color,
+    if not use_median_non_co2:
+        x = all_non_co2_db[magicc_temp_col]
+        y = all_non_co2_db[magicc_non_co2_col]
+        equation_of_fit = np.polyfit(x, y, 1)
+        all_fit_lines.append(equation_of_fit)
+        plt.plot(np.unique(x), np.poly1d(equation_of_fit)(np.unique(x)), color="black")
+        equation_text = "y = " + str(round(equation_of_fit[0], 4)) + "x" " + " + str(
+            round(equation_of_fit[1], 4)
         )
-
+        plt.text(
+            0.9,
+            0.1,
+            equation_text,
+            horizontalalignment="center",
+            verticalalignment="center",
+            transform=ax.transAxes,
+        )
+        quantiles_of_plot = budget_func.rolling_window_find_quantiles(
+            xs=all_non_co2_db[magicc_temp_col],
+            ys=all_non_co2_db[magicc_non_co2_col],
+            quantiles=quantiles_to_plot,
+            nwindows=10,
+        )
+        x = quantiles_of_plot.index.values
+        for col in quantiles_of_plot.columns:
+            y = quantiles_of_plot[col].values
+            if col == 0.5:
+                dashes = [1, 0]
+                color = "black"
+            else:
+                dashes = [6, 2]
+                color = "grey"
+            plt.plot(
+                np.unique(x),
+                np.poly1d(np.polyfit(x, y, 1))(np.unique(x)),
+                dashes=dashes,
+                color=color,
+            )
+    else:
+        minT = temp_plot_limits[0]
+        maxT = temp_plot_limits[1]
+        for i in range(len(quantile_reg_trends)):
+            plt.plot((minT, maxT), (quantile_reg_trends['b'][i] * minT + quantile_reg_trends['a'][i], quantile_reg_trends['b'][i] * maxT + quantile_reg_trends['a'][i]), ls=line_dotting[i], color='black')
     fig.savefig(
         output_figure_file.format(include_magicc, include_fair), bbox_inches="tight"
     )

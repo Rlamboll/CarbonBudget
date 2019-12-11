@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-
+import statsmodels.formula.api as smf
 
 def calculate_budget(
     dT_target, zec, historical_dT, non_co2_dT, tcre, earth_feedback_co2
@@ -105,3 +105,14 @@ def rolling_window_find_quantiles(
                 ys[cumsum_weights >= quantiles[i_quantile]]
             )
     return quantmatrix
+
+def quantile_regression_find_relationships(xy_df, quantiles_to_plot):
+    quant_reg_model = smf.quantreg("y ~ x", xy_df)
+
+    def fit_model(q, mod, name):
+        res = mod.fit(q=q)
+        return [q, res.params['Intercept'], res.params[name]] + \
+               res.conf_int().loc[name].tolist()
+
+    modelsA = [fit_model(x, quant_reg_model, 'x') for x in quantiles_to_plot]
+    return pd.DataFrame(modelsA, columns=['quantile', 'a', 'b', 'b-', 'b+'])
