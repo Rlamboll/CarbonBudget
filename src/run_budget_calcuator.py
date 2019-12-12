@@ -47,7 +47,7 @@ output_figure_file = "../Output/non_co2_cont_to_peak_warming_magicc_{}_fair_{}.p
 # If use_median_non_co2 == True, this must include 0.5, as we use this value
 quantiles_to_plot = [0.05, 0.5, 0.95]
 # How should we dot these lines? This list must be as long as quantiles_to_plot.
-line_dotting = ['--', '-', '--']
+line_dotting = ["--", "-", "--"]
 # Should we use the median regression or the least-squares best fit for the non-CO2 relationship?
 use_median_non_co2 = True
 # Where should we save the results of the figure with only
@@ -128,16 +128,25 @@ for case_ind in range(3):
     else:
         raise ValueError("You must include either magicc or fair data")
     if use_median_non_co2:
-        assert 0.5 in quantiles_to_plot, "The median value, quantiles_to_plot=0.5, " \
-                                         "must be included if use_median_non_co2==True"
+        assert 0.5 in quantiles_to_plot, (
+            "The median value, quantiles_to_plot=0.5, "
+            "must be included if use_median_non_co2==True"
+        )
         x = all_non_co2_db[magicc_temp_col]
         y = all_non_co2_db[magicc_non_co2_col]
-        xy_df = pd.DataFrame({'x': x, 'y': y})
-        quantile_reg_trends = budget_func.quantile_regression_find_relationships(xy_df, quantiles_to_plot)
-        non_co2_dTs = distributions.establish_median_temp_dep(quantile_reg_trends, dT_targets - historical_dT)
+        xy_df = pd.DataFrame({"x": x, "y": y})
+        quantile_reg_trends = budget_func.quantile_regression_find_relationships(
+            xy_df, quantiles_to_plot
+        )
+        non_co2_dTs = distributions.establish_median_temp_dep(
+            quantile_reg_trends, dT_targets - historical_dT
+        )
     else:
         non_co2_dTs = distributions.establish_least_sq_temp_dependence(
-            all_non_co2_db, dT_targets - historical_dT, magicc_non_co2_col, magicc_temp_col
+            all_non_co2_db,
+            dT_targets - historical_dT,
+            magicc_non_co2_col,
+            magicc_temp_col,
         )
 
     for dT_target in dT_targets:
@@ -255,7 +264,15 @@ for case_ind in range(3):
         minT = temp_plot_limits[0]
         maxT = temp_plot_limits[1]
         for i in range(len(quantile_reg_trends)):
-            plt.plot((minT, maxT), (quantile_reg_trends['b'][i] * minT + quantile_reg_trends['a'][i], quantile_reg_trends['b'][i] * maxT + quantile_reg_trends['a'][i]), ls=line_dotting[i], color='black')
+            plt.plot(
+                (minT, maxT),
+                (
+                    quantile_reg_trends["b"][i] * minT + quantile_reg_trends["a"][i],
+                    quantile_reg_trends["b"][i] * maxT + quantile_reg_trends["a"][i],
+                ),
+                ls=line_dotting[i],
+                color="black",
+            )
     fig.savefig(
         output_figure_file.format(include_magicc, include_fair), bbox_inches="tight"
     )

@@ -1,6 +1,7 @@
 from src.distributions_of_inputs import tcre_distribution
 import matplotlib.pyplot as plt
 import numpy as np
+
 """
 This script exists to create plots of TCRE distribution functions. 
 It does this by directly generating large numbers of results and plotting the 

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 
+
 def calculate_budget(
     dT_target, zec, historical_dT, non_co2_dT, tcre, earth_feedback_co2
 ):
@@ -37,6 +38,8 @@ def rolling_window_find_quantiles(
 ):
     """
     Perform quantile analysis in the y-direction for x-weighted data.
+
+    This code is only used for drawing the graph, not on actual calculations.
 
     Divides the x-axis into nwindows of equal length and weights data by how close they
     are to the center of these boxes. Then returns the quantiles of this weighted data.
@@ -106,12 +109,13 @@ def rolling_window_find_quantiles(
             )
     return quantmatrix
 
+
 def quantile_regression_find_relationships(xy_df, quantiles_to_plot):
     quant_reg_model = smf.quantreg("y ~ x", xy_df)
 
     def fit_model(q, mod, name):
         res = mod.fit(q=q)
-        return [q, res.params['Intercept'], res.params[name]]
+        return [q, res.params["Intercept"], res.params[name]]
 
-    modelsA = [fit_model(x, quant_reg_model, 'x') for x in quantiles_to_plot]
-    return pd.DataFrame(modelsA, columns=['quantile', 'a', 'b'])
+    modelsA = [fit_model(x, quant_reg_model, "x") for x in quantiles_to_plot]
+    return pd.DataFrame(modelsA, columns=["quantile", "a", "b"])

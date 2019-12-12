@@ -6,6 +6,23 @@ import scipy.stats
 
 
 def tcre_distribution(low, high, likelihood, n_return, tcre_dist):
+    """
+
+    :param low: float
+        The lower limit of the probability distribution
+    :param high: float
+        The upper limit of the probability distribution. Must be larger than low. 
+    :param likelihood: float
+        Probability (between 0 and 1) that the value will be between low and high
+    :param n_return: int
+        The number of values to return
+    :param tcre_dist: Str
+        Either "normal" for a normal distribution, "lognormal" for a lognormal
+        distribution, or "lognormal mean match", for a lognormal but with the same mean
+        and standard deviation as a normal distribution fitting the same
+        high/low/likelihood values.
+    :return:
+    """
     assert high > low, "High and low limits are the wrong way around"
     if tcre_dist == "normal":
         # We want a normal distribution such that we are between low and high with a
@@ -46,9 +63,18 @@ def tcre_distribution(low, high, likelihood, n_return, tcre_dist):
 
 
 def establish_median_temp_dep(models, temps):
+    """
+    Calculates the median line of fit
+    :param models: pd.Database.
+        Must include a column marked 'quantile' with a row 0.5
+    :param temps: np.array.
+
+    :return: pd.Series
+    """
     return pd.Series(
         index=temps,
-        data=models['b'].loc[models['quantile'] == 0.5].iloc[0] * temps + models['a'].loc[models['quantile'] == 0.5].iloc[0]
+        data=models["b"].loc[models["quantile"] == 0.5].iloc[0] * temps
+        + models["a"].loc[models["quantile"] == 0.5].iloc[0],
     )
 
 

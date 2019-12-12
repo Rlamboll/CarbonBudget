@@ -81,15 +81,12 @@ def test_mismanaged_mixed_calculation_of_budgets():
 
 def test_calculate_earth_syst():
     not_zero = 1000
-    feedback = calc.calculate_earth_system_feedback_co2(
-        0, not_zero
-    )
+    feedback = calc.calculate_earth_system_feedback_co2(0, not_zero)
     assert feedback == 0
     two = 2
-    feedback = calc.calculate_earth_system_feedback_co2(
-        two, not_zero
-    )
+    feedback = calc.calculate_earth_system_feedback_co2(two, not_zero)
     assert feedback == two * not_zero
+
 
 def test_quantile_regression_find_relationships_colinear():
     xy_df = pd.DataFrame({"x": [0.1, 0.2, 0.3], "y": [0.0, 0.1, 0.2]})
@@ -103,24 +100,21 @@ def test_quantile_regression_find_relationships_colinear():
         abs(x) < 1e-14 for x in calc_value.iloc[1].values - np.array([0.5, -0.1, 1])
     )
     assert all(
-        abs(x) < 1e-14 for x in
-        calc_value.iloc[2].values - np.array([0.1, -0.1, 1])
+        abs(x) < 1e-14 for x in calc_value.iloc[2].values - np.array([0.1, -0.1, 1])
     )
 
+
 def test_quantile_regression_find_relationships_scattered():
-    xy_df = pd.DataFrame({"x": [0.1, 0.2, 0.3, 0.1, 0.2, 0.3],
-                          "y": [0.0, 0.1, 0.2, 0.2, 0.3, 0.4]})
+    xy_df = pd.DataFrame(
+        {"x": [0.1, 0.2, 0.3, 0.1, 0.2, 0.3], "y": [0.0, 0.1, 0.2, 0.2, 0.3, 0.4]}
+    )
     quantiles_to_plot = [0.9, 0.5, 0.1]
     calc_value = calc.quantile_regression_find_relationships(xy_df, quantiles_to_plot)
     # The trend line is y = x - 0.1
-    assert all(abs(x) < 1e-6 for x in
-               calc_value.iloc[0].values - np.array([0.9, 0.1, 1]))
     assert all(
-        abs(x) < 1e-6 for x in
-        calc_value.iloc[1].values - np.array([0.5, 0, 1])
+        abs(x) < 1e-6 for x in calc_value.iloc[0].values - np.array([0.9, 0.1, 1])
     )
+    assert all(abs(x) < 1e-6 for x in calc_value.iloc[1].values - np.array([0.5, 0, 1]))
     assert all(
-        abs(x) < 1e-6 for x in
-        calc_value.iloc[2].values - np.array([0.1, -0.1, 1])
+        abs(x) < 1e-6 for x in calc_value.iloc[2].values - np.array([0.1, -0.1, 1])
     )
-
