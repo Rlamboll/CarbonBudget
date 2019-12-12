@@ -111,8 +111,7 @@ def quantile_regression_find_relationships(xy_df, quantiles_to_plot):
 
     def fit_model(q, mod, name):
         res = mod.fit(q=q)
-        return [q, res.params['Intercept'], res.params[name]] + \
-               res.conf_int().loc[name].tolist()
+        return [q, res.params['Intercept'], res.params[name]]
 
     modelsA = [fit_model(x, quant_reg_model, 'x') for x in quantiles_to_plot]
-    return pd.DataFrame(modelsA, columns=['quantile', 'a', 'b', 'b-', 'b+'])
+    return pd.DataFrame(modelsA, columns=['quantile', 'a', 'b'])

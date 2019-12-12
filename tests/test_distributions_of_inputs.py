@@ -1,5 +1,7 @@
 import src.distributions_of_inputs as distributions
+import src.budget_calculator_functions as calc
 import numpy as np
+import pandas as pd
 import pytest
 
 
@@ -67,3 +69,11 @@ def test_tcre_lognormal_pde_distribution():
     assert sum(returned < 0) == 0
     likely_fraction = 1 - (sum(0.8 > returned) + sum(2.5 < returned)) / len(returned)
     assert abs(likely_fraction - likelihood) < 0.01
+
+
+def test_establish_median_temp_dep():
+    xy_df = pd.DataFrame({"x": [0.1, 0.2, 0.3, 0.1, 0.2, 0.3],
+                          "y": [0.0, 0.1, 0.2, 0.2, 0.3, 0.4]})
+    quantiles_to_plot = [0.5]
+    # with pytest.raises():
+    calc.quantile_regression_find_relationships(xy_df, quantiles_to_plot)
