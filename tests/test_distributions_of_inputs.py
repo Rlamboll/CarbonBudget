@@ -75,5 +75,20 @@ def test_establish_median_temp_dep():
     xy_df = pd.DataFrame({"x": [0.1, 0.2, 0.3, 0.1, 0.2, 0.3],
                           "y": [0.0, 0.1, 0.2, 0.2, 0.3, 0.4]})
     quantiles_to_plot = [0.5]
-    # with pytest.raises():
-    calc.quantile_regression_find_relationships(xy_df, quantiles_to_plot)
+    temp = np.array([2, 3])
+    relations = calc.quantile_regression_find_relationships(xy_df, quantiles_to_plot)
+    returned = distributions.establish_median_temp_dep(relations, temp)
+    # The above data has a 1:1 relationship, so we expect to receive the temp back again
+    assert all(abs(x-y) < 1e-14 for x, y in zip(returned, temp))
+
+def test_establish_median_temp_dep_not_skewed():
+    # This test is largely equivalent to the above, but includes some very large values
+    # that should not impact the overall results.
+    xy_df = pd.DataFrame({"x": [0.1, 0.2, 0.3, 0.1, 0.2, 0.3, 0.1, 0.2, 0.3],
+                          "y": [0.0, 0.1, 0.2, 1000, 1000, 1000, 0.1, 0.2, 0.3, ]})
+    quantiles_to_plot = [0.5]
+    temp = np.array([2, 3])
+    relations = calc.quantile_regression_find_relationships(xy_df, quantiles_to_plot)
+    returned = distributions.establish_median_temp_dep(relations, temp)
+    # The above data has a 1:1 relationship, so we expect to receive the temp back again
+    assert all(abs(x - y) < 1e-10 for x, y in zip(returned, temp))
