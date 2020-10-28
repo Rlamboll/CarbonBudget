@@ -55,43 +55,36 @@ output_all_trends = "../Output/ar6draft2/TrendLinesWithMagicc.pdf"
 #       Information for reading in files used to calculate non-CO2 component:
 
 #       MAGICC files
-# The file in which we find the MAGICC model estimate for the non-carbon contributions
-# to temperature change. (Units: C)
+# The folder and files in which we find the MAGICC model estimate for the non-carbon and
+# carbon contributions to temperature change.
 input_folder = "../InputData/Non-CO2 - AR6 emulator SR15 scenarios/"
 non_co2_magicc_file = input_folder + "nonco2_results_20201026-sr15-nonco2_GSAT-Non-CO2.csv"
+tot_magicc_file = input_folder + "nonco2_results_20201026-sr15-nonco2_GSAT.csv"
 # The file in which we find the emissions data
 emissions_file = input_folder + "nonco2_results_20201026-sr15-nonco2_Emissions-CO2.csv"
-# The names of the columns of interest in the MAGICC model file
-magicc_non_co2_col = "non-co2 warming (rel. to 2010-2019) at peak cumulative emissions co2 (rel. to 2015-2015)"
-# The name of the temperature variable in MAGICC (including the quantile)
-magicc_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.4.1|50.0th Percentile"
-# The name of the column containing the surface temperature of interest
+# The name of the non-CO2 warming column output from in the MAGICC model file analysis
+magicc_non_co2_col = "non-co2 warming (rel. to 2010-2019) at peak cumulative emissions co2"
+# The name of the peak temperature column output
 magicc_temp_col = "peak surface temperature (rel. to 2010-2019)"
-# Names of the model, scenario and year columns in the MAGICC database
-model_col = "model"
-scenario_col = "scenario"
-year_col = "peak cumulative emissions co2 (rel. to 2015-2015) year"
-
-#       FaIR files
-
-# The folders for the unscaled anthropological temperature changes files (many nc files)
-fair_anthro_folder = "../InputData/fair141_sr15_ar6fodsetup/FAIR141anthro_unscaled/"
-fair_co2_only_folder = "../InputData/fair141_sr15_ar6fodsetup/FAIR141CO2_unscaled/"
-# Years over which we set the average temperature to 0. This should be the same as the
-# MAGICC data uses. Note that the upper limit of the range is not included in python.
-fair_offset_years = np.arange(2010, 2020, 1)
+# The names of the temperature variables in MAGICC files (including the quantile)
+magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.4.1|50.0th Percentile"
+magicc_tot_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.4.1|50.0th Percentile"
+# Years over which we set the average temperature to 0.
+# Note that the upper limit of the range is not included in python.
+temp_offset_years = np.arange(2010, 2020, 1)
 
 # ______________________________________________________________________________________
 # The parts below should not need editing
 
 magicc_db = distributions.load_data_from_MAGICC(
     non_co2_magicc_file,
+    tot_magicc_file,
     emissions_file,
     magicc_non_co2_col,
-    magicc_temp_variable,
-    model_col,
-    year_col,
-    fair_offset_years,
+    magicc_temp_col,
+    magicc_nonco2_temp_variable,
+    magicc_tot_temp_variable,
+    temp_offset_years,
 )
 non_co2_dT_fair = np.nan
 # We interpret the higher quantiles as meaning a smaller budget
@@ -123,6 +116,7 @@ for case_ind in range(1):
         x = all_non_co2_db[magicc_temp_col]
         y = all_non_co2_db[magicc_non_co2_col]
         xy_df = pd.DataFrame({"x": x, "y": y})
+        xy_df = xy_df.reset_index(drop=True)
         quantile_reg_trends = budget_func.quantile_regression_find_relationships(
             xy_df, quantiles_to_plot
         )

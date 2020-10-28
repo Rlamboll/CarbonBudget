@@ -85,7 +85,8 @@ def establish_least_sq_temp_dependence(db, temps, non_co2_col, temp_col):
 
 
 def load_data_from_MAGICC(
-    warmingfile, yearfile, non_co2_col, temp_variable, model_col, year_col, offset_years
+    non_co2_magicc_file, tot_magicc_file, yearfile, non_co2_col, tot_col, magicc_nonco2_temp_variable,
+    tot_temp_variable, offset_years
 ):
     yeardf = pd.read_csv(yearfile, index_col=0)
     # Drop empty columns from the dataframe and calculate the year the emissions go to
@@ -109,20 +110,29 @@ def load_data_from_MAGICC(
             zero_years[index] = np.round(zero_year)
         except IndexError:
             del zero_years[index]
-    # load temperature data and get it into the same format as the emissions data
-    df = pd.read_csv(warmingfile, index_col=0)
-    df = df.loc[df["variable"] == temp_variable]
-    df.set_index(scenario_cols, drop=True, inplace=True)
-    del df["unit"]
-    del df["variable"]
-    assert all([ind in df.index for ind in total_co2.index]), \
-        "There is a mismatch between the emissions year file and the temperture file"
-    df = df.loc[[ind for ind in df.index if ind in zero_years.index]]
-    df.columns = [int(col[:4]) for col in df.columns]
-    # For each scenario, we subtract the average temperature from the offset years
-    temp_df = pd.Series(index=df.index)
-    for ind, row in df.iterrows():
-        temp_df[ind] = df.loc[ind][zero_years.loc[ind]] - df.loc[ind][offset_years].mean()
+    # load temperature data and get it into the same format as the emissions data.
+    # Do this for both non-CO2 and CO2-only temperature.
+    temp_df = pd.DataFrame(index=zero_years.index, columns=[tot_col, non_co2_col])
+    for (warmingfile, col_name, temp_variable) in [
+        (non_co2_magicc_file, non_co2_col, magicc_nonco2_temp_variable),
+        (tot_magicc_file, tot_col, tot_temp_variable)
+    ]:
+        df = pd.read_csv(warmingfile, index_col=0)
+        df = df.loc[df["variable"] == temp_variable]
+        df.set_index(scenario_cols, drop=True, inplace=True)
+        del df["unit"]
+        del df["variable"]
+        assert all([ind in df.index for ind in total_co2.index]), \
+            "There is a mismatch between the emissions year file and the temperture file"
+        df = df.loc[[ind for ind in df.index if ind in zero_years.index]]
+        df.columns = [int(col[:4]) for col in df.columns]
+        # For each scenario, we subtract the average temperature from the offset years
+        for ind, row in df.iterrows():
+            if warmingfile == non_co2_magicc_file:
+                temp = df.loc[ind][zero_years.loc[ind]]
+            else:
+                temp = max(df.loc[ind])
+            temp_df[col_name][ind] = temp - df.loc[ind][offset_years].mean()
 
     return temp_df
 
