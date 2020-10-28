@@ -20,13 +20,13 @@ historical_dT = 1.1
 # "lognormal". The latter two cases are lognormal distributions, in the first
 # case matching the mean and sd of the normal distribution which fits the likelihood,
 # in the second case matching the likelihood.
-tcre_dist = "normal"
+tcre_dist = "lognormal"
 # The upper and lower bounds of the distribution of TCRE. We use units of C per GtCO2.
 # (TCRE = Transient climate response to cumulative carbon emissions)
 tcre_low = 1.0 / 3664
 tcre_high = 2.1 / 3664
 # likelihood is the probability that results fit between the low and high value
-likelihood = 0.6827
+likelihood = 0.66
 # CO2 emissions per degree C from temperature-dependent Earth feedback loops.
 # (Units: GtCO2/C)
 earth_feedback_co2_per_C = 135
@@ -86,7 +86,7 @@ magicc_db = distributions.load_data_from_MAGICC(
     magicc_tot_temp_variable,
     temp_offset_years,
 )
-non_co2_dT_fair = np.nan
+non_co2_dT_fair = np.nan  # We currently do not consider the impact of the FaIR model
 # We interpret the higher quantiles as meaning a smaller budget
 inverse_quantiles_to_report = 1 - quantiles_to_report
 # Construct the container for saved results
@@ -113,6 +113,8 @@ for case_ind in range(1):
             "The median value, quantiles_to_plot=0.5, "
             "must be included if use_median_non_co2==True"
         )
+        # The quantile regression program is temperamental, so we ensure the data has
+        # the correct numeric format before passing it
         x = all_non_co2_db[magicc_temp_col].astype(np.float64)
         y = all_non_co2_db[magicc_non_co2_col].astype(np.float64)
         xy_df = pd.DataFrame({"x": x, "y": y})
@@ -255,20 +257,21 @@ for case_ind in range(1):
         output_figure_file.format(include_magicc, include_fair), bbox_inches="tight"
     )
 plt.close()
-# Plot all trendlines together
-x = temp_plot_limits
-y = non_co2_plot_limits
-fig = plt.figure(figsize=(12, 7))
-ax = fig.add_subplot(111)
-colours = ["black", "blue", "orange"]
-for eqn in all_fit_lines:
-    plt.plot(np.unique(x), np.poly1d(eqn)(np.unique(x)), color=colours[0])
-    colours = colours[1:]
-plt.xlim(temp_plot_limits)
-plt.ylim(non_co2_plot_limits)
-plt.legend(["MAGICC and FaIR", "MAGICC only", "FaIR only"])
-plt.ylabel(magicc_non_co2_col)
-plt.xlabel(magicc_temp_col)
-fig.savefig(output_all_trends)
+# Plot all trendlines together, if data was processed without median values
+if not use_median_non_co2:
+    x = temp_plot_limits
+    y = non_co2_plot_limits
+    fig = plt.figure(figsize=(12, 7))
+    ax = fig.add_subplot(111)
+    colours = ["black", "blue", "orange"]
+    for eqn in all_fit_lines:
+        plt.plot(np.unique(x), np.poly1d(eqn)(np.unique(x)), color=colours[0])
+        colours = colours[1:]
+    plt.xlim(temp_plot_limits)
+    plt.ylim(non_co2_plot_limits)
+    plt.legend(["MAGICC and FaIR", "MAGICC only", "FaIR only"])
+    plt.ylabel(magicc_non_co2_col)
+    plt.xlabel(magicc_temp_col)
+    fig.savefig(output_all_trends)
 
 print("The analysis has completed.")
