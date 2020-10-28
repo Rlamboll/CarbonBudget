@@ -21,11 +21,10 @@ historical_dT = 1.1
 # case matching the mean and sd of the normal distribution which fits the likelihood,
 # in the second case matching the likelihood.
 tcre_dist = "normal"
-# The mean of the distribution of TCRE. We use units of C per GtCO2.
+# The upper and lower bounds of the distribution of TCRE. We use units of C per GtCO2.
 # (TCRE = Transient climate response to cumulative carbon emissions)
-tcre_low = 1.1 / 3664
-# The standard deviation of the distribution of TCRE.
-tcre_high = 2.2 / 3664
+tcre_low = 1.0 / 3664
+tcre_high = 2.1 / 3664
 # likelihood is the probability that results fit between the low and high value
 likelihood = 0.6827
 # CO2 emissions per degree C from temperature-dependent Earth feedback loops.
@@ -39,10 +38,10 @@ quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
 # Output file location for budget data. Includes {} sections detailing inclusion of
 # TCRE, inclusion of magic/fair, earth system feedback and likelihood
 output_file = (
-    "../Output/budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}_likelihood_{}.csv"
+    "../Output/ar6draft2/budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}_likelihood_{}.csv"
 )
 # Output location for figure of peak warming vs non-CO2 warming
-output_figure_file = "../Output/non_co2_cont_to_peak_warming_magicc_{}_fair_{}.pdf"
+output_figure_file = "../Output/ar6draft2/non_co2_cont_to_peak_warming_magicc_{}_fair_{}.pdf"
 # Quantile fit lines to plot on the graph.
 # If use_median_non_co2 == True, this must include 0.5, as we use this value
 quantiles_to_plot = [0.05, 0.5, 0.95]
@@ -50,17 +49,22 @@ quantiles_to_plot = [0.05, 0.5, 0.95]
 line_dotting = ["--", "-", "--"]
 # Should we use the median regression or the least-squares best fit for the non-CO2 relationship?
 use_median_non_co2 = True
-# Where should we save the results of the figure with only
-output_all_trends = "../Output/TrendLinesWithMagiccFairOrBoth.pdf"
+# Where should we save the results of the figure
+output_all_trends = "../Output/ar6draft2/TrendLinesWithMagicc.pdf"
 
 #       Information for reading in files used to calculate non-CO2 component:
 
 #       MAGICC files
 # The file in which we find the MAGICC model estimate for the non-carbon contributions
 # to temperature change. (Units: C)
-non_co2_magicc_file = "../InputData/AR6comptibleMAGICCsetup.csv"
+input_folder = "../InputData/Non-CO2 - AR6 emulator SR15 scenarios/"
+non_co2_magicc_file = input_folder + "nonco2_results_20201026-sr15-nonco2_GSAT-Non-CO2.csv"
+# The file in which we find the emissions data
+emissions_file = input_folder + "nonco2_results_20201026-sr15-nonco2_Emissions-CO2.csv"
 # The names of the columns of interest in the MAGICC model file
 magicc_non_co2_col = "non-co2 warming (rel. to 2010-2019) at peak cumulative emissions co2 (rel. to 2015-2015)"
+# The name of the temperature variable in MAGICC (including the quantile)
+magicc_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.4.1|50.0th Percentile"
 # The name of the column containing the surface temperature of interest
 magicc_temp_col = "peak surface temperature (rel. to 2010-2019)"
 # Names of the model, scenario and year columns in the MAGICC database
@@ -82,37 +86,21 @@ fair_offset_years = np.arange(2010, 2020, 1)
 
 magicc_db = distributions.load_data_from_MAGICC(
     non_co2_magicc_file,
+    emissions_file,
     magicc_non_co2_col,
-    magicc_temp_col,
+    magicc_temp_variable,
     model_col,
-    scenario_col,
     year_col,
-)
-non_co2_dT_fair = distributions.load_data_from_FaIR(
-    fair_anthro_folder,
-    fair_co2_only_folder,
-    magicc_db,
-    model_col,
-    scenario_col,
-    year_col,
-    magicc_non_co2_col,
-    magicc_temp_col,
     fair_offset_years,
 )
+non_co2_dT_fair = np.nan
 # We interpret the higher quantiles as meaning a smaller budget
 inverse_quantiles_to_report = 1 - quantiles_to_report
 # Construct the container for saved results
 all_fit_lines = []
-for case_ind in range(3):
-    if case_ind == 0:
-        include_magicc = True
-        include_fair = True
-    if case_ind == 1:
-        include_magicc = True
-        include_fair = False
-    if case_ind == 2:
-        include_magicc = False
-        include_fair = True
+for case_ind in range(1):
+    include_magicc = True
+    include_fair = False
 
     budget_quantiles = pd.DataFrame(index=dT_targets, columns=quantiles_to_report)
     budget_quantiles.index.name = "dT_targets"

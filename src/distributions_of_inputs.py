@@ -3,6 +3,7 @@ import netCDF4
 import numpy as np
 import pandas as pd
 import scipy.stats
+import scipy.interpolate
 
 
 def tcre_distribution(low, high, likelihood, n_return, tcre_dist):
@@ -84,13 +85,46 @@ def establish_least_sq_temp_dependence(db, temps, non_co2_col, temp_col):
 
 
 def load_data_from_MAGICC(
-    file, non_co2_col, temp_col, model_col, scenario_col, year_col
+    warmingfile, yearfile, non_co2_col, temp_variable, model_col, year_col, offset_years
 ):
-    df = pd.read_csv(file)
-    df = df.loc[df["quantile"] == 0.5]
-    df = df[[non_co2_col, temp_col, model_col, scenario_col, year_col]]
-    assert len(df) == len(df.groupby([model_col, scenario_col]))
-    return df
+    yeardf = pd.read_csv(yearfile, index_col=0)
+    # Drop empty columns from the dataframe and calculate the year the emissions go to
+    # zero
+    empty_cols = [col for col in yeardf.columns if yeardf[col].isnull().all()]
+    yeardf.drop(empty_cols,
+            axis=1,
+            inplace=True)
+    scenario_cols = ["model", "region", "scenario"]
+    del yeardf["unit"]
+    total_co2 = yeardf.groupby(scenario_cols).sum()
+    total_co2.columns = [int(col[:4]) for col in total_co2.columns]
+    zero_years = pd.Series(index=total_co2.index)
+    for index, row in total_co2.iterrows():
+        try:
+            change_sign = np.where(row < 0)[0][0]
+            zero_year = scipy.interpolate.interp1d(
+                [row.iloc[change_sign -1], row.iloc[change_sign]],
+                [row.index[change_sign -1], row.index[change_sign]]
+            )(0)
+            zero_years[index] = np.round(zero_year)
+        except IndexError:
+            del zero_years[index]
+    # load temperature data and get it into the same format as the emissions data
+    df = pd.read_csv(warmingfile, index_col=0)
+    df = df.loc[df["variable"] == temp_variable]
+    df.set_index(scenario_cols, drop=True, inplace=True)
+    del df["unit"]
+    del df["variable"]
+    assert all([ind in df.index for ind in total_co2.index]), \
+        "There is a mismatch between the emissions year file and the temperture file"
+    df = df.loc[[ind for ind in df.index if ind in zero_years.index]]
+    df.columns = [int(col[:4]) for col in df.columns]
+    # For each scenario, we subtract the average temperature from the offset years
+    temp_df = pd.Series(index=df.index)
+    for ind, row in df.iterrows():
+        temp_df[ind] = df.loc[ind][zero_years.loc[ind]] - df.loc[ind][offset_years].mean()
+
+    return temp_df
 
 
 def load_data_from_FaIR(
