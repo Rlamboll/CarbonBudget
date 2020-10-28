@@ -112,7 +112,7 @@ def load_data_from_MAGICC(
             del zero_years[index]
     # load temperature data and get it into the same format as the emissions data.
     # Do this for both non-CO2 and CO2-only temperature.
-    temp_df = pd.DataFrame(index=zero_years.index, columns=[tot_col, non_co2_col])
+    temp_df = pd.DataFrame(index=zero_years.index, columns=[tot_col, non_co2_col], dtype=np.float64)
     for (warmingfile, col_name, temp_variable) in [
         (non_co2_magicc_file, non_co2_col, magicc_nonco2_temp_variable),
         (tot_magicc_file, tot_col, tot_temp_variable)

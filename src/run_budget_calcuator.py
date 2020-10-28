@@ -113,8 +113,8 @@ for case_ind in range(1):
             "The median value, quantiles_to_plot=0.5, "
             "must be included if use_median_non_co2==True"
         )
-        x = all_non_co2_db[magicc_temp_col]
-        y = all_non_co2_db[magicc_non_co2_col]
+        x = all_non_co2_db[magicc_temp_col].astype(np.float64)
+        y = all_non_co2_db[magicc_non_co2_col].astype(np.float64)
         xy_df = pd.DataFrame({"x": x, "y": y})
         xy_df = xy_df.reset_index(drop=True)
         quantile_reg_trends = budget_func.quantile_regression_find_relationships(
@@ -161,16 +161,12 @@ for case_ind in range(1):
         )
     )
     temp_plot_limits = [
-        min(min(magicc_db[magicc_temp_col]), min(non_co2_dT_fair[magicc_temp_col])),
-        max(max(magicc_db[magicc_temp_col]), max(non_co2_dT_fair[magicc_temp_col])),
+        min(magicc_db[magicc_temp_col]),
+        max(magicc_db[magicc_temp_col]),
     ]
     non_co2_plot_limits = [
-        min(
-            min(magicc_db[magicc_non_co2_col]), min(non_co2_dT_fair[magicc_non_co2_col])
-        ),
-        max(
-            max(magicc_db[magicc_non_co2_col]), max(non_co2_dT_fair[magicc_non_co2_col])
-        ),
+        min(magicc_db[magicc_non_co2_col]),
+        max(magicc_db[magicc_non_co2_col]),
     ]
 
     def add_fringe(limits, fringe):
