@@ -85,8 +85,15 @@ def establish_least_sq_temp_dependence(db, temps, non_co2_col, temp_col):
 
 
 def load_data_from_MAGICC(
-    non_co2_magicc_file, tot_magicc_file, yearfile, non_co2_col, tot_col,
-        magicc_nonco2_temp_variable, tot_temp_variable, offset_years, peak_version=None
+    non_co2_magicc_file,
+    tot_magicc_file,
+    yearfile,
+    non_co2_col,
+    tot_col,
+    magicc_nonco2_temp_variable,
+    tot_temp_variable,
+    offset_years,
+    peak_version=None,
 ):
     """
     Loads the non-CO2 warming and total warming from files in the format output by
@@ -108,9 +115,7 @@ def load_data_from_MAGICC(
     # Drop empty columns from the dataframe and calculate the year the emissions go to
     # zero
     empty_cols = [col for col in yeardf.columns if yeardf[col].isnull().all()]
-    yeardf.drop(empty_cols,
-            axis=1,
-            inplace=True)
+    yeardf.drop(empty_cols, axis=1, inplace=True)
     scenario_cols = ["model", "region", "scenario"]
     del yeardf["unit"]
     total_co2 = yeardf.groupby(scenario_cols).sum()
@@ -122,7 +127,7 @@ def load_data_from_MAGICC(
                 change_sign = np.where(row < 0)[0][0]
                 zero_year = scipy.interpolate.interp1d(
                     [row.iloc[change_sign - 1], row.iloc[change_sign]],
-                    [row.index[change_sign - 1], row.index[change_sign]]
+                    [row.index[change_sign - 1], row.index[change_sign]],
                 )(0)
                 zero_years[index] = np.round(zero_year)
             except IndexError:
@@ -155,9 +160,7 @@ def load_data_from_MAGICC(
             max_year = np.where(max(tot_df.loc[ind]) == tot_df.loc[ind])[0]
             temp = non_co2_df.loc[ind].iloc[max_year]
         else:
-            raise ValueError(
-                "Invalid choice for peak_version {}".format(peak_version)
-            )
+            raise ValueError("Invalid choice for peak_version {}".format(peak_version))
         temp_df[non_co2_col][ind] = temp - non_co2_df.loc[ind][offset_years].mean()
 
     return temp_df
@@ -169,9 +172,10 @@ def _read_and_clean_magicc_csv(scenario_cols, temp_df, temp_variable, warmingfil
     df.set_index(scenario_cols, drop=True, inplace=True)
     del df["unit"]
     del df["variable"]
-    assert all([ind in df.index for ind in temp_df.index]), \
-        "There is a mismatch between the emissions year file and the temperature " \
+    assert all([ind in df.index for ind in temp_df.index]), (
+        "There is a mismatch between the emissions year file and the temperature "
         "file"
+    )
     df = df.loc[[ind for ind in df.index if ind in temp_df.index]]
     df.columns = [int(col[:4]) for col in df.columns]
     return df

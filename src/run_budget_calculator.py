@@ -39,8 +39,9 @@ quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
 output_folder = "../Output/ar6draft2/"
 # Output file location for budget data. Includes {} sections detailing inclusion of
 # TCRE, inclusion of magic/fair, earth system feedback and likelihood. More added later
-output_file = output_folder + \
-              "budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}_likelihood_{}"
+output_file = (
+    output_folder + "budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}_likelihood_{}"
+)
 # Output location for figure of peak warming vs non-CO2 warming. More appended later
 output_figure_file = output_folder + "non_co2_cont_to_peak_warming_magicc_{}_fair_{}"
 # Quantile fit lines to plot on the graph.
@@ -71,12 +72,16 @@ output_figure_file += "_" + str(peak_version) + ".pdf"
 # The folder and files in which we find the MAGICC model estimate for the non-carbon and
 # carbon contributions to temperature change.
 input_folder = "../InputData/Non-CO2 - AR6 emulator SR15 scenarios/"
-non_co2_magicc_file = input_folder + "nonco2_results_20201026-sr15-nonco2_GSAT-Non-CO2.csv"
+non_co2_magicc_file = (
+    input_folder + "nonco2_results_20201026-sr15-nonco2_GSAT-Non-CO2.csv"
+)
 tot_magicc_file = input_folder + "nonco2_results_20201026-sr15-nonco2_GSAT.csv"
 # The file in which we find the emissions data
 emissions_file = input_folder + "nonco2_results_20201026-sr15-nonco2_Emissions-CO2.csv"
 # The name of the non-CO2 warming column output from in the MAGICC model file analysis
-magicc_non_co2_col = "non-co2 warming (rel. to 2010-2019) at peak cumulative emissions co2"
+magicc_non_co2_col = (
+    "non-co2 warming (rel. to 2010-2019) at peak cumulative emissions co2"
+)
 # The name of the peak temperature column output
 magicc_temp_col = "peak surface temperature (rel. to 2010-2019)"
 # The names of the temperature variables in MAGICC files (also specifies the quantile)
@@ -201,6 +206,7 @@ for case_ind in range(1):
         limits[0] = limits[0] - offset
         limits[1] = limits[1] + offset
         return limits
+
     # 0.04 is chosen for the fringes for aesthetic reasons
     temp_plot_limits = add_fringe(temp_plot_limits, 0.04)
     non_co2_plot_limits = add_fringe(non_co2_plot_limits, 0.04)
