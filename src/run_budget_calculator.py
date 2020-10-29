@@ -54,6 +54,10 @@ use_median_non_co2 = True
 # Where should we save the results of the figure with trend lines? Not plotted if
 # use_median_non_co2 is True.
 output_all_trends = output_folder + "TrendLinesWithMagicc.pdf"
+
+#       Information for reading in files used to calculate non-CO2 component:
+
+#       MAGICC files
 # Should we use a variant means of measuring the non-CO2 warming?
 # Default = None; ignore scenarios with non-peaking cumulative CO2 emissions, use
 # non-CO2 warming in the year of peak cumulative CO2.
@@ -64,9 +68,6 @@ output_all_trends = output_folder + "TrendLinesWithMagicc.pdf"
 peak_version = None  # "nonCO2AtPeakTot"
 output_file += "_" + str(peak_version) + ".csv"
 output_figure_file += "_" + str(peak_version) + ".pdf"
-#       Information for reading in files used to calculate non-CO2 component:
-
-#       MAGICC files
 # The folder and files in which we find the MAGICC model estimate for the non-carbon and
 # carbon contributions to temperature change.
 input_folder = "../InputData/Non-CO2 - AR6 emulator SR15 scenarios/"
@@ -78,7 +79,7 @@ emissions_file = input_folder + "nonco2_results_20201026-sr15-nonco2_Emissions-C
 magicc_non_co2_col = "non-co2 warming (rel. to 2010-2019) at peak cumulative emissions co2"
 # The name of the peak temperature column output
 magicc_temp_col = "peak surface temperature (rel. to 2010-2019)"
-# The names of the temperature variables in MAGICC files (including the quantile)
+# The names of the temperature variables in MAGICC files (also specifies the quantile)
 magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.4.1|50.0th Percentile"
 magicc_tot_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.4.1|50.0th Percentile"
 # Do we want to save the output of the MAGICC analysis? If so, give a file name with a
@@ -109,6 +110,7 @@ non_co2_dT_fair = np.nan  # We currently do not consider the impact of the FaIR 
 inverse_quantiles_to_report = 1 - quantiles_to_report
 # Construct the container for saved results
 all_fit_lines = []
+# Modify the following loop to use subsets of data for robustness checks
 for case_ind in range(1):
     include_magicc = True
     include_fair = False
@@ -144,6 +146,7 @@ for case_ind in range(1):
             quantile_reg_trends, dT_targets - historical_dT
         )
     else:
+        # If not quantile regression, we use the least squares fit to the non-CO2 data
         non_co2_dTs = distributions.establish_least_sq_temp_dependence(
             all_non_co2_db,
             dT_targets - historical_dT,
@@ -180,6 +183,8 @@ for case_ind in range(1):
             likelihood,
         )
     )
+
+    # Make plots of the data
     temp_plot_limits = [
         min(magicc_db[magicc_temp_col]),
         max(magicc_db[magicc_temp_col]),
@@ -196,7 +201,7 @@ for case_ind in range(1):
         limits[0] = limits[0] - offset
         limits[1] = limits[1] + offset
         return limits
-
+    # 0.04 is chosen for the fringes for aesthetic reasons
     temp_plot_limits = add_fringe(temp_plot_limits, 0.04)
     non_co2_plot_limits = add_fringe(non_co2_plot_limits, 0.04)
     plt.close()

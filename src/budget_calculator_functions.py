@@ -7,16 +7,17 @@ def calculate_budget(
     dT_target, zec, historical_dT, non_co2_dT, tcre, earth_feedback_co2
 ):
     """
-
+    Performs the arithmetic given all the required terms, as in Rogelj, Forster,
+    Kriegler et al. 2019.
     :param dT_target: The target temperature change to achieve
     :param zec: The change in temperature that will occur after zero emissions has been
-    reached.
+    reached
     :param historical_dT: The temperature difference already seen
     :param non_co2_dT: The non-carbon contributions to temperature change
     :param tcre: Transient climate response to cumulative carbon emissions
     :param earth_feedback_co2: CO2 emissions from temperature-dependent Earth feedback
     loops
-    :return: the remaining CO2 budget.
+    :return: the remaining CO2 budget
     """
 
     remaining_dT = dT_target - zec - non_co2_dT - historical_dT
@@ -25,7 +26,8 @@ def calculate_budget(
 
 def calculate_earth_system_feedback_co2(dtemp, co2_per_degree):
     """
-
+    Applies the relationship between temp change and earth system feedback - currently
+    linear.
     :param dtemp: the additional warming expected
     :param co2_per_degree: the amount of CO2 emitted per additional degree of warming
     :return: CO2 emitted by earth systems feedback
@@ -111,6 +113,8 @@ def rolling_window_find_quantiles(
 
 
 def quantile_regression_find_relationships(xy_df, quantiles_to_plot):
+    # Performs the quantile regression calculation for each quantile in
+    # quantiles_to_plot.
     quant_reg_model = smf.quantreg("y ~ x", xy_df)
 
     def fit_model(q, mod, name):
