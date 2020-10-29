@@ -53,11 +53,14 @@ use_median_non_co2 = True
 # Where should we save the results of the figure with trend lines? Not plotted if
 # use_median_non_co2 is True.
 output_all_trends = "../Output/ar6draft2/TrendLinesWithMagicc.pdf"
-# Should we use a variant means of measuring the non-CO2 warming? Default = None; ignore
-# scenarios with non-peaking cumulative CO2 emissions, use non-CO2 warming in the year
-# of peak cumulative CO2. If "peakNonCO2", we use the highest non-CO2 temperature,
+# Should we use a variant means of measuring the non-CO2 warming?
+# Default = None; ignore scenarios with non-peaking cumulative CO2 emissions, use
+# non-CO2 warming in the year of peak cumulative CO2.
+# If "peakNonCO2Warming", we use the highest non-CO2 temperature,
 # irrespective of emissions peak.
-peak_version = "peakNonCO2Warming"
+# If "nonCO2AtPeakTot", computes the non-CO2 component at the time of peak total
+# temperature.
+peak_version = "nonCO2AtPeakTot"
 output_file += "_" + str(peak_version) + ".csv"
 output_figure_file += "_" + str(peak_version) + ".png"
 #       Information for reading in files used to calculate non-CO2 component:
