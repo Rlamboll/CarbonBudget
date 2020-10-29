@@ -54,6 +54,10 @@ use_median_non_co2 = True
 # Where should we save the results of the figure with trend lines? Not plotted if
 # use_median_non_co2 is True.
 output_all_trends = output_folder + "TrendLinesWithMagicc.pdf"
+
+#       Information for reading in files used to calculate non-CO2 component:
+
+#       MAGICC files
 # Should we use a variant means of measuring the non-CO2 warming?
 # Default = None; ignore scenarios with non-peaking cumulative CO2 emissions, use
 # non-CO2 warming in the year of peak cumulative CO2.
@@ -61,12 +65,9 @@ output_all_trends = output_folder + "TrendLinesWithMagicc.pdf"
 # irrespective of emissions peak.
 # If "nonCO2AtPeakTot", computes the non-CO2 component at the time of peak total
 # temperature.
-peak_version = None  # "nonCO2AtPeakTot"
-output_file += "_" + str(peak_version) + ".csv"
-output_figure_file += "_" + str(peak_version) + ".pdf"
-#       Information for reading in files used to calculate non-CO2 component:
-
-#       MAGICC files
+# If "nonCO2AtPeakCO2Warming", computes the non-CO2 component at the time of the highest
+# CO2-only temperature. Additional options are needed to locate these.
+peak_version = "nonCO2AtPeakCO2Warming"
 # The folder and files in which we find the MAGICC model estimate for the non-carbon and
 # carbon contributions to temperature change.
 input_folder = "../InputData/Non-CO2 - AR6 emulator SR15 scenarios/"
@@ -87,6 +88,12 @@ magicc_savename = output_folder + "magicc_nonCO2_temp" + str(peak_version) + ".c
 # Years over which we set the average temperature to 0.
 # Note that the upper limit of the range is not included in python.
 temp_offset_years = np.arange(2010, 2020, 1)
+# Names of variables only required if peak_version == "nonCO2AtPeakCO2Warming"
+co2_only_temp_file = input_folder + "nonco2_results_20201026-sr15-nonco2_GSAT-CO2.csv"
+co2_only_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|CO2|MAGICCv7.4.1|50.0th Percentile"
+# Other file names need updating now
+output_file += "_" + str(peak_version) + ".csv"
+output_figure_file += "_" + str(peak_version) + ".pdf"
 
 # ______________________________________________________________________________________
 # The parts below should not need editing
@@ -101,6 +108,8 @@ magicc_db = distributions.load_data_from_MAGICC(
     magicc_tot_temp_variable,
     temp_offset_years,
     peak_version,
+    co2_only_temp_file,
+    co2_only_temp_variable,
 )
 if magicc_savename:
     magicc_db.to_csv(magicc_savename)

@@ -86,7 +86,8 @@ def establish_least_sq_temp_dependence(db, temps, non_co2_col, temp_col):
 
 def load_data_from_MAGICC(
     non_co2_magicc_file, tot_magicc_file, yearfile, non_co2_col, tot_col,
-        magicc_nonco2_temp_variable, tot_temp_variable, offset_years, peak_version=None
+    magicc_nonco2_temp_variable, tot_temp_variable, offset_years, peak_version=None,
+    co2_only_temp_file=None, co2_only_temp_variable=None
 ):
     """
     Loads the non-CO2 warming and total warming from files in the format output by
@@ -142,12 +143,21 @@ def load_data_from_MAGICC(
     tot_df = _read_and_clean_magicc_csv(
         scenario_cols, temp_df, tot_temp_variable, tot_magicc_file
     )
+    if peak_version == "nonCO2AtPeakCO2Warming":
+        co2_only_df = _read_and_clean_magicc_csv(
+            scenario_cols, temp_df, co2_only_temp_variable, co2_only_temp_file
+        )
+        zero_years = pd.Series(index=total_co2.index)
+        for index, _ in total_co2.iterrows():
+            zero_years[index] = co2_only_df.loc[index].index[
+                co2_only_df.loc[index] == max(co2_only_df.loc[index])
+            ][0]
     # For each scenario, we subtract the average temperature from the offset years
     for ind, row in tot_df.iterrows():
         temp = max(tot_df.loc[ind])
         temp_df[tot_col][ind] = temp - tot_df.loc[ind][offset_years].mean()
     for ind, row in non_co2_df.iterrows():
-        if not peak_version:
+        if not peak_version or peak_version == "nonCO2AtPeakCO2Warming":
             temp = non_co2_df.loc[ind][zero_years.loc[ind]]
         elif peak_version == "peakNonCO2Warming":
             temp = max(non_co2_df.loc[ind])
