@@ -38,21 +38,22 @@ quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
 # Name of the output folder
 output_folder = "../Output/ar6draft2/"
 # Output file location for budget data. Includes {} sections detailing inclusion of
-# TCRE, inclusion of magic/fair, earth system feedback and likelihood
+# TCRE, inclusion of magic/fair, earth system feedback and likelihood. More added later
 output_file = output_folder + \
-              "budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}_likelihood_{}.csv"
-# Output location for figure of peak warming vs non-CO2 warming
-output_figure_file = output_folder + "non_co2_cont_to_peak_warming_magicc_{}_fair_{}.pdf"
+              "budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}_likelihood_{}"
+# Output location for figure of peak warming vs non-CO2 warming. More appended later
+output_figure_file = output_folder + "non_co2_cont_to_peak_warming_magicc_{}_fair_{}"
 # Quantile fit lines to plot on the graph.
 # If use_median_non_co2 == True, this must include 0.5, as we use this value
 quantiles_to_plot = [0.05, 0.5, 0.95]
 # How should we dot these lines? This list must be as long as quantiles_to_plot.
 line_dotting = ["--", "-", "--"]
-# Should we use the median regression or the least-squares best fit for the non-CO2 relationship?
+# Should we use the median regression or the least-squares best fit for the non-CO2
+# relationship?
 use_median_non_co2 = True
 # Where should we save the results of the figure with trend lines? Not plotted if
 # use_median_non_co2 is True.
-output_all_trends = "../Output/ar6draft2/TrendLinesWithMagicc.pdf"
+output_all_trends = output_folder + "TrendLinesWithMagicc.pdf"
 # Should we use a variant means of measuring the non-CO2 warming?
 # Default = None; ignore scenarios with non-peaking cumulative CO2 emissions, use
 # non-CO2 warming in the year of peak cumulative CO2.
@@ -60,9 +61,9 @@ output_all_trends = "../Output/ar6draft2/TrendLinesWithMagicc.pdf"
 # irrespective of emissions peak.
 # If "nonCO2AtPeakTot", computes the non-CO2 component at the time of peak total
 # temperature.
-peak_version = "nonCO2AtPeakTot"
+peak_version = None  # "nonCO2AtPeakTot"
 output_file += "_" + str(peak_version) + ".csv"
-output_figure_file += "_" + str(peak_version) + ".png"
+output_figure_file += "_" + str(peak_version) + ".pdf"
 #       Information for reading in files used to calculate non-CO2 component:
 
 #       MAGICC files
