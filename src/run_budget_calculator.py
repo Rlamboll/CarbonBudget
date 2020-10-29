@@ -20,13 +20,13 @@ historical_dT = 1.1
 # "lognormal". The latter two cases are lognormal distributions, in the first
 # case matching the mean and sd of the normal distribution which fits the likelihood,
 # in the second case matching the likelihood.
-tcre_dist = "lognormal"
+tcre_dist = "normal"
 # The upper and lower bounds of the distribution of TCRE. We use units of C per GtCO2.
 # (TCRE = Transient climate response to cumulative carbon emissions)
 tcre_low = 1.0 / 3664
 tcre_high = 2.1 / 3664
 # likelihood is the probability that results fit between the low and high value
-likelihood = 0.66
+likelihood = 0.6827
 # CO2 emissions per degree C from temperature-dependent Earth feedback loops.
 # (Units: GtCO2/C)
 earth_feedback_co2_per_C = 135
@@ -35,13 +35,14 @@ earth_feedback_co2_per_C = 135
 recent_emissions = 0
 # We will present the budgets at these quantiles of the TCRE.
 quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
+# Name of the output folder
+output_folder = "../Output/ar6draft2/"
 # Output file location for budget data. Includes {} sections detailing inclusion of
 # TCRE, inclusion of magic/fair, earth system feedback and likelihood
-output_file = (
-    "../Output/ar6draft2/budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}_likelihood_{}.csv"
-)
+output_file = output_folder + \
+              "budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}_likelihood_{}.csv"
 # Output location for figure of peak warming vs non-CO2 warming
-output_figure_file = "../Output/ar6draft2/non_co2_cont_to_peak_warming_magicc_{}_fair_{}.pdf"
+output_figure_file = output_folder + "non_co2_cont_to_peak_warming_magicc_{}_fair_{}.pdf"
 # Quantile fit lines to plot on the graph.
 # If use_median_non_co2 == True, this must include 0.5, as we use this value
 quantiles_to_plot = [0.05, 0.5, 0.95]
@@ -49,9 +50,16 @@ quantiles_to_plot = [0.05, 0.5, 0.95]
 line_dotting = ["--", "-", "--"]
 # Should we use the median regression or the least-squares best fit for the non-CO2 relationship?
 use_median_non_co2 = True
-# Where should we save the results of the figure
+# Where should we save the results of the figure with trend lines? Not plotted if
+# use_median_non_co2 is True.
 output_all_trends = "../Output/ar6draft2/TrendLinesWithMagicc.pdf"
-
+# Should we use a variant means of measuring the non-CO2 warming? Default = None; ignore
+# scenarios with non-peaking cumulative CO2 emissions, use non-CO2 warming in the year
+# of peak cumulative CO2. If "peakNonCO2", we use the highest non-CO2 temperature,
+# irrespective of emissions peak.
+peak_version = "peakNonCO2Warming"
+output_file += "_" + str(peak_version) + ".csv"
+output_figure_file += "_" + str(peak_version) + ".png"
 #       Information for reading in files used to calculate non-CO2 component:
 
 #       MAGICC files
@@ -69,6 +77,9 @@ magicc_temp_col = "peak surface temperature (rel. to 2010-2019)"
 # The names of the temperature variables in MAGICC files (including the quantile)
 magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.4.1|50.0th Percentile"
 magicc_tot_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.4.1|50.0th Percentile"
+# Do we want to save the output of the MAGICC analysis? If so, give a file name with a
+# variable in it. Otherwise leave as None
+magicc_savename = output_folder + "magicc_nonCO2_temp" + str(peak_version) + ".csv"
 # Years over which we set the average temperature to 0.
 # Note that the upper limit of the range is not included in python.
 temp_offset_years = np.arange(2010, 2020, 1)
@@ -85,7 +96,10 @@ magicc_db = distributions.load_data_from_MAGICC(
     magicc_nonco2_temp_variable,
     magicc_tot_temp_variable,
     temp_offset_years,
+    peak_version,
 )
+if magicc_savename:
+    magicc_db.to_csv(magicc_savename)
 non_co2_dT_fair = np.nan  # We currently do not consider the impact of the FaIR model
 # We interpret the higher quantiles as meaning a smaller budget
 inverse_quantiles_to_report = 1 - quantiles_to_report

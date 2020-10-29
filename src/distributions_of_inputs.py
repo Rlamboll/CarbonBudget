@@ -85,9 +85,25 @@ def establish_least_sq_temp_dependence(db, temps, non_co2_col, temp_col):
 
 
 def load_data_from_MAGICC(
-    non_co2_magicc_file, tot_magicc_file, yearfile, non_co2_col, tot_col, magicc_nonco2_temp_variable,
-    tot_temp_variable, offset_years
+    non_co2_magicc_file, tot_magicc_file, yearfile, non_co2_col, tot_col,
+        magicc_nonco2_temp_variable, tot_temp_variable, offset_years, peak_version=None
 ):
+    """
+    Loads the non-CO2 warming and total warming from files in the format output by
+    MAGICC.
+    :param non_co2_magicc_file: The file location for non-CO2 warming
+    :param tot_magicc_file: The file for total warming
+    :param yearfile: The file where emissions are recorded
+    :param non_co2_col: The name of the non-CO2 warming column in the output
+    :param tot_col: The name of the total warming column in the output df
+    :param magicc_nonco2_temp_variable: The name of the non-CO2 warming variable to be
+        investigated
+    :param tot_temp_variable: The name of the total warming variable to be investigated
+    :param offset_years: The years over which the baseline average should be taken
+    :param peak_version: String describing which year the non-CO2 warming should be
+        taken in.
+    :return: pd.Dataframe
+    """
     yeardf = pd.read_csv(yearfile, index_col=0)
     # Drop empty columns from the dataframe and calculate the year the emissions go to
     # zero
@@ -98,21 +114,28 @@ def load_data_from_MAGICC(
     scenario_cols = ["model", "region", "scenario"]
     del yeardf["unit"]
     total_co2 = yeardf.groupby(scenario_cols).sum()
-    total_co2.columns = [int(col[:4]) for col in total_co2.columns]
-    zero_years = pd.Series(index=total_co2.index)
-    for index, row in total_co2.iterrows():
-        try:
-            change_sign = np.where(row < 0)[0][0]
-            zero_year = scipy.interpolate.interp1d(
-                [row.iloc[change_sign -1], row.iloc[change_sign]],
-                [row.index[change_sign -1], row.index[change_sign]]
-            )(0)
-            zero_years[index] = np.round(zero_year)
-        except IndexError:
-            del zero_years[index]
-    # load temperature data and get it into the same format as the emissions data.
-    # Do this for both non-CO2 and CO2-only temperature.
-    temp_df = pd.DataFrame(index=zero_years.index, columns=[tot_col, non_co2_col], dtype=np.float64)
+    if not peak_version:
+        total_co2.columns = [int(col[:4]) for col in total_co2.columns]
+        zero_years = pd.Series(index=total_co2.index)
+        for index, row in total_co2.iterrows():
+            try:
+                change_sign = np.where(row < 0)[0][0]
+                zero_year = scipy.interpolate.interp1d(
+                    [row.iloc[change_sign - 1], row.iloc[change_sign]],
+                    [row.index[change_sign - 1], row.index[change_sign]]
+                )(0)
+                zero_years[index] = np.round(zero_year)
+            except IndexError:
+                del zero_years[index]
+        # load temperature data and get it into the same format as the emissions data.
+        # Do this for both non-CO2 and CO2-only temperature.
+        temp_df = pd.DataFrame(
+            index=zero_years.index, columns=[tot_col, non_co2_col], dtype=np.float64
+        )
+    else:
+        temp_df = pd.DataFrame(
+            index=total_co2.index, columns=[tot_col, non_co2_col], dtype=np.float64
+        )
     for (warmingfile, col_name, temp_variable) in [
         (non_co2_magicc_file, non_co2_col, magicc_nonco2_temp_variable),
         (tot_magicc_file, tot_col, tot_temp_variable)
@@ -122,16 +145,24 @@ def load_data_from_MAGICC(
         df.set_index(scenario_cols, drop=True, inplace=True)
         del df["unit"]
         del df["variable"]
-        assert all([ind in df.index for ind in total_co2.index]), \
-            "There is a mismatch between the emissions year file and the temperture file"
-        df = df.loc[[ind for ind in df.index if ind in zero_years.index]]
+        assert all([ind in df.index for ind in temp_df.index]), \
+            "There is a mismatch between the emissions year file and the temperture " \
+            "file"
+        df = df.loc[[ind for ind in df.index if ind in temp_df.index]]
         df.columns = [int(col[:4]) for col in df.columns]
         # For each scenario, we subtract the average temperature from the offset years
         for ind, row in df.iterrows():
-            if warmingfile == non_co2_magicc_file:
-                temp = df.loc[ind][zero_years.loc[ind]]
-            else:
+            if not peak_version:
+                if warmingfile == non_co2_magicc_file:
+                    temp = df.loc[ind][zero_years.loc[ind]]
+                else:
+                    temp = max(df.loc[ind])
+            elif peak_version == "peakNonCO2Warming":
                 temp = max(df.loc[ind])
+            else:
+                raise ValueError(
+                    "Invalid choice for peak_version {}".format(peak_version)
+                )
             temp_df[col_name][ind] = temp - df.loc[ind][offset_years].mean()
 
     return temp_df
