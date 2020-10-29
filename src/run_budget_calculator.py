@@ -67,7 +67,7 @@ output_all_trends = output_folder + "TrendLinesWithMagicc.pdf"
 # temperature.
 # If "nonCO2AtPeakCO2Warming", computes the non-CO2 component at the time of the highest
 # CO2-only temperature. Additional options are needed to locate these.
-peak_version = "nonCO2AtPeakCO2Warming"
+peak_version = "peakNonCO2Warming"
 # The folder and files in which we find the MAGICC model estimate for the non-carbon and
 # carbon contributions to temperature change.
 input_folder = "../InputData/Non-CO2 - AR6 emulator SR15 scenarios/"
