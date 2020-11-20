@@ -87,7 +87,7 @@ magicc_non_co2_col = (
 # The name of the peak temperature column output
 magicc_temp_col = "peak surface temperature (rel. to 2010-2019)"
 # The percentile to use for non-CO2 temperature change
-nonco2_percentile = 50
+nonco2_percentile = 5
 # The names of the temperature variables in MAGICC files (also specifies the quantile)
 magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.4.1|{}.0th Percentile".format(
     nonco2_percentile
@@ -197,8 +197,8 @@ for case_ind in range(1):
             include_fair,
             earth_feedback_co2_per_C_av,
             earth_feedback_co2_per_C_stdv,
-            nonco2_percentile,
             likelihood,
+            nonco2_percentile,
         )
     )
     # Convert the data to PgC and save again
@@ -211,8 +211,8 @@ for case_ind in range(1):
             include_fair,
             earth_feedback_co2_per_C_av,
             earth_feedback_co2_per_C_stdv,
-            nonco2_percentile,
             likelihood,
+            nonco2_percentile,
         ).replace("GtCO2", "PgC")
     )
 
