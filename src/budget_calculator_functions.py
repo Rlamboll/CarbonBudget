@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 
-
 def calculate_budget(
     dT_target, zec, historical_dT, non_co2_dT, tcre, earth_feedback_co2
 ):
@@ -24,15 +23,20 @@ def calculate_budget(
     return remaining_dT / tcre - earth_feedback_co2
 
 
-def calculate_earth_system_feedback_co2(dtemp, co2_per_degree):
+def calculate_earth_system_feedback_co2(
+        dtemp, co2_per_degree_av, co2_per_degree_stdv, nloops
+):
     """
-    Applies the relationship between temp change and earth system feedback - currently
-    linear.
+    Applies the relationship between temp change and earth system feedback -
+    linear and normally distributed.
     :param dtemp: the additional warming expected
-    :param co2_per_degree: the amount of CO2 emitted per additional degree of warming
+    :param co2_per_degree_av: the amount of CO2 emitted per additional degree of warming
+    :param co2_per_degree_stdv: the standard deviatoin in CO2 emitted per additional
+    degree of warming
+    :param nloops: the number of values to return
     :return: CO2 emitted by earth systems feedback
     """
-    return dtemp * co2_per_degree
+    return dtemp * np.random.normal(co2_per_degree_av, co2_per_degree_stdv, nloops)
 
 
 def rolling_window_find_quantiles(
