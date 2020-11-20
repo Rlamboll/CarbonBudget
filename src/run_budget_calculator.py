@@ -15,7 +15,7 @@ n_loops = 10000000
 # (Units: C)
 zec = 0.0
 # The temperature difference already seen. (Units: C)
-historical_dT = 1.05
+historical_dT = 1.1
 # The distribution of the TCRE function - either "normal". "lognormal mean match" or
 # "lognormal". The latter two cases are lognormal distributions, in the first
 # case matching the mean and sd of the normal distribution which fits the likelihood,
@@ -29,9 +29,9 @@ tcre_high = 2.1 / 3664
 likelihood = 0.6827
 # Average CO2 emissions per degree C from temperature-dependent Earth feedback loops.
 # (Units: GtCO2/C)
-earth_feedback_co2_per_C_av = 24 * 3.664
+earth_feedback_co2_per_C_av = 135 # 24 * 3.664
 # St dev CO2 emissions per degree C from temperature-dependent Earth feedback loops.
-earth_feedback_co2_per_C_stdv = 12 * 3.664
+earth_feedback_co2_per_C_stdv = 0 # 12 * 3.664
 # Any emissions that have taken place too recently to have factored into the measured
 # temperature change, and therefore must be subtracted from the budget (Units: GtCO2)
 recent_emissions = 0
@@ -42,7 +42,7 @@ output_folder = "../Output/ar6draft3/"
 # Output file location for budget data. Includes {} sections detailing inclusion of
 # TCRE, inclusion of magic/fair, earth system feedback and likelihood. More added later
 output_file = (
-    output_folder + "budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}pm{}_likelihood_{}_nonCO2perc{}_GtCO2"
+    output_folder + "budget_{}_magicc_{}_fair_{}_esf_{}pm{}_likeli_{}_nonCO2pc{}_GtCO2"
 )
 # Output location for figure of peak warming vs non-CO2 warming. More appended later
 output_figure_file = output_folder + "non_co2_cont_to_peak_warming_magicc_{}_fair_{}"
@@ -87,7 +87,7 @@ magicc_non_co2_col = (
 # The name of the peak temperature column output
 magicc_temp_col = "peak surface temperature (rel. to 2010-2019)"
 # The percentile to use for non-CO2 temperature change
-nonco2_percentile = 5
+nonco2_percentile = 50
 # The names of the temperature variables in MAGICC files (also specifies the quantile)
 magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.4.1|{}.0th Percentile".format(
     nonco2_percentile
