@@ -29,9 +29,9 @@ tcre_high = 2.1 / 3664
 likelihood = 0.6827
 # Average CO2 emissions per degree C from temperature-dependent Earth feedback loops.
 # (Units: GtCO2/C)
-earth_feedback_co2_per_C_av = 24 * 3.664
+earth_feedback_co2_per_C_av = 19.1 * 3.664
 # St dev CO2 emissions per degree C from temperature-dependent Earth feedback loops.
-earth_feedback_co2_per_C_stdv = 12 * 3.664
+earth_feedback_co2_per_C_stdv = 11.6 * 3.664
 # Any emissions that have taken place too recently to have factored into the measured
 # temperature change, and therefore must be subtracted from the budget (Units: GtCO2)
 recent_emissions = 0
@@ -203,7 +203,7 @@ for case_ind in range(1):
     )
     # Convert the data to PgC and save again
     PgC_budget_quantiles = budget_quantiles
-    PgC_budget_quantiles[quantiles_to_report] *= 3.664
+    PgC_budget_quantiles[quantiles_to_report] *= 1/3.664
     PgC_budget_quantiles.to_csv(
         output_file.format(
             tcre_dist,
