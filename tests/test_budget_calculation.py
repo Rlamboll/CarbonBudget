@@ -41,7 +41,7 @@ def test_calculate_multiple_tcres():
     historical_dT = 1.1
     non_co2_dT = 0.108
     tcre = np.random.normal(1.65 / 3664.0, 0.4 / 3664.0, 10000000)
-    earth_feedback_co2 = 54
+    earth_feedback_co2 = np.random.normal(54, 0.001, 10000000)
     budget = calc.calculate_budget(
         dT_target, zec, historical_dT, non_co2_dT, tcre, earth_feedback_co2
     )
@@ -81,10 +81,10 @@ def test_mismanaged_mixed_calculation_of_budgets():
 
 def test_calculate_earth_syst():
     not_zero = 1000
-    feedback = calc.calculate_earth_system_feedback_co2(0, not_zero)
+    feedback = calc.calculate_earth_system_feedback_co2(0, not_zero, 0, 1)
     assert feedback == 0
     two = 2
-    feedback = calc.calculate_earth_system_feedback_co2(two, not_zero)
+    feedback = calc.calculate_earth_system_feedback_co2(two, not_zero, 0, 1)
     assert feedback == two * not_zero
 
 
