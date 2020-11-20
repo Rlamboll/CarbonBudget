@@ -195,8 +195,8 @@ for case_ind in range(1):
             tcre_dist,
             include_magicc,
             include_fair,
-            earth_feedback_co2_per_C_av,
-            earth_feedback_co2_per_C_stdv,
+            round(earth_feedback_co2_per_C_av, 2),
+            round(earth_feedback_co2_per_C_stdv, 2),
             likelihood,
             nonco2_percentile,
         )
@@ -209,8 +209,8 @@ for case_ind in range(1):
             tcre_dist,
             include_magicc,
             include_fair,
-            earth_feedback_co2_per_C_av,
-            earth_feedback_co2_per_C_stdv,
+            round(earth_feedback_co2_per_C_av, 2),
+            round(earth_feedback_co2_per_C_stdv, 2),
             likelihood,
             nonco2_percentile,
         ).replace("GtCO2", "PgC")
