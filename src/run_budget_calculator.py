@@ -42,7 +42,7 @@ output_folder = "../Output/ar6draft3/"
 # Output file location for budget data. Includes {} sections detailing inclusion of
 # TCRE, inclusion of magic/fair, earth system feedback and likelihood. More added later
 output_file = (
-    output_folder + "budget_calculation_{}_magicc_{}_fair_{}_earthsfb_{}pm{}_likelihood_{}_nonCO2perc{}_GtCO2"
+    output_folder + "budget_{}_magicc_{}_fair_{}_esf_{}pm{}_likeli_{}_nonCO2pc{}_GtCO2"
 )
 # Output location for figure of peak warming vs non-CO2 warming. More appended later
 output_figure_file = output_folder + "non_co2_cont_to_peak_warming_magicc_{}_fair_{}"
@@ -87,7 +87,7 @@ magicc_non_co2_col = (
 # The name of the peak temperature column output
 magicc_temp_col = "peak surface temperature (rel. to 2010-2019)"
 # The percentile to use for non-CO2 temperature change
-nonco2_percentile = 5
+nonco2_percentile = 50
 # The names of the temperature variables in MAGICC files (also specifies the quantile)
 magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.4.1|{}.0th Percentile".format(
     nonco2_percentile
