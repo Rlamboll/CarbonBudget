@@ -15,7 +15,7 @@ n_loops = 10000000
 # (Units: C)
 zec = 0.0
 # The temperature difference already seen. (Units: C)
-historical_dT = 1.1
+historical_dT = 1.05
 # The distribution of the TCRE function - either "normal". "lognormal mean match" or
 # "lognormal". The latter two cases are lognormal distributions, in the first
 # case matching the mean and sd of the normal distribution which fits the likelihood,
@@ -29,9 +29,9 @@ tcre_high = 2.1 / 3664
 likelihood = 0.6827
 # Average CO2 emissions per degree C from temperature-dependent Earth feedback loops.
 # (Units: GtCO2/C)
-earth_feedback_co2_per_C_av = 135 # 24 * 3.664
+earth_feedback_co2_per_C_av = 24 * 3.664
 # St dev CO2 emissions per degree C from temperature-dependent Earth feedback loops.
-earth_feedback_co2_per_C_stdv = 0 # 12 * 3.664
+earth_feedback_co2_per_C_stdv = 12 * 3.664
 # Any emissions that have taken place too recently to have factored into the measured
 # temperature change, and therefore must be subtracted from the budget (Units: GtCO2)
 recent_emissions = 0

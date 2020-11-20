@@ -36,8 +36,7 @@ def calculate_earth_system_feedback_co2(
     :param nloops: the number of values to return
     :return: CO2 emitted by earth systems feedback
     """
-    return dtemp * co2_per_degree_av
-    # return dtemp * np.random.normal(co2_per_degree_av, co2_per_degree_stdv, nloops)
+    return dtemp * np.random.normal(co2_per_degree_av, co2_per_degree_stdv, nloops)
 
 
 def rolling_window_find_quantiles(
