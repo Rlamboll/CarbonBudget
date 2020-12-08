@@ -149,15 +149,15 @@ def load_data_from_MAGICC(
     )
     # For each scenario, we subtract the average temperature from the offset years
     for ind, row in tot_df.iterrows():
-        temp = max(tot_df.loc[ind])
+        temp = np.nanmax(tot_df.loc[ind])
         temp_df[tot_col][ind] = temp - tot_df.loc[ind][offset_years].mean()
     for ind, row in non_co2_df.iterrows():
         if not peak_version:
             temp = non_co2_df.loc[ind][zero_years.loc[ind]]
         elif peak_version == "peakNonCO2Warming":
-            temp = max(non_co2_df.loc[ind])
+            temp = np.nanmax(non_co2_df.loc[ind])
         elif peak_version == "nonCO2AtPeakTot":
-            max_year = np.where(max(tot_df.loc[ind]) == tot_df.loc[ind])[0]
+            max_year = np.where(np.nanmax(tot_df.loc[ind]) == tot_df.loc[ind])[0]
             temp = non_co2_df.loc[ind].iloc[max_year]
         else:
             raise ValueError("Invalid choice for peak_version {}".format(peak_version))
@@ -172,10 +172,12 @@ def _read_and_clean_magicc_csv(scenario_cols, temp_df, temp_variable, warmingfil
     df.set_index(scenario_cols, drop=True, inplace=True)
     del df["unit"]
     del df["variable"]
-    assert all([ind in df.index for ind in temp_df.index]), (
-        "There is a mismatch between the emissions year file and the temperature "
-        "file"
-    )
+    if not all([ind in df.index for ind in temp_df.index]):
+        print("There is a mismatch between the emissions year file and the temperature "
+        "file")
+        print("MISSING SCENARIOS: temp is is missing {} found in {}".format(
+            warmingfile, [ind for ind in temp_df.index if ind not in df.index]
+        ))
     df = df.loc[[ind for ind in df.index if ind in temp_df.index]]
     df.columns = [int(col[:4]) for col in df.columns]
     return df
