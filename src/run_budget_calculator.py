@@ -21,7 +21,7 @@ historical_dT = 1.05
 # case matching the mean and sd of the normal distribution which fits the likelihood,
 # in the second case matching the likelihood.
 tcre_dist = "normal"
-# The upper and lower bounds of the distribution of TCRE. We use units of C per GtCO2.
+# The upper and lower bounds of the distribution of TCRE. We use units of degC per GtCO2
 # (TCRE = Transient climate response to cumulative carbon emissions)
 tcre_low = 1.0 / 3664
 tcre_high = 2.1 / 3664
@@ -46,13 +46,13 @@ output_file = (
 )
 # Output location for figure of peak warming vs non-CO2 warming. More appended later
 output_figure_file = output_folder + "non_co2_cont_to_peak_warming_magicc_{}_fair_{}"
-# Quantile fit lines to plot on the graph.
+# Quantile fit lines to plot on the temperatures graph.
 # If use_median_non_co2 == True, this must include 0.5, as we use this value
 quantiles_to_plot = [0.05, 0.5, 0.95]
 # How should we dot these lines? This list must be as long as quantiles_to_plot.
 line_dotting = ["--", "-", "--"]
-# Should we use the median regression or the least-squares best fit for the non-CO2
-# relationship?
+# Should we use the median value from quantile regression (True) or the least-squares
+# best fit (False) for the non-CO2 relationship?
 use_median_non_co2 = True
 # Where should we save the results of the figure with trend lines? Not plotted if
 # use_median_non_co2 is True.
@@ -86,7 +86,7 @@ magicc_non_co2_col = (
 )
 # The name of the peak temperature column output
 magicc_temp_col = "peak surface temperature (rel. to 2010-2019)"
-# The percentile to use for non-CO2 temperature change
+# The percentile to use for non-CO2 temperature change (for each scenario separately)
 nonco2_percentile = 50
 # The names of the temperature variables in MAGICC files (also specifies the quantile)
 magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.4.1|{}.0th Percentile".format(
@@ -125,6 +125,8 @@ inverse_quantiles_to_report = 1 - quantiles_to_report
 all_fit_lines = []
 # Modify the following loop to use subsets of data for robustness checks
 for case_ind in range(1):
+    # At some point we may want to check robustnesss to including alternative simplified
+    #  models to evaluate non-CO2 impacts.
     include_magicc = True
     include_fair = False
 

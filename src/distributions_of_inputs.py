@@ -1,5 +1,4 @@
 import os
-import netCDF4
 import numpy as np
 import pandas as pd
 import scipy.stats
@@ -109,6 +108,12 @@ def load_data_from_MAGICC(
     :param offset_years: The years over which the baseline average should be taken
     :param peak_version: String describing which year the non-CO2 warming should be
         taken in.
+        Default = None; ignore scenarios with non-peaking cumulative CO2 emissions, use
+        non-CO2 warming in the year of peak cumulative CO2.
+        If "peakNonCO2Warming", we use the highest non-CO2 temperature,
+        irrespective of emissions peak.
+        If "nonCO2AtPeakTot", computes the non-CO2 component at the time of peak total
+        temperature.
     :return: pd.Dataframe
     """
     yeardf = pd.read_csv(yearfile, index_col=0)
