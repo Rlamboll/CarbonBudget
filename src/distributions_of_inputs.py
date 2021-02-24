@@ -172,7 +172,15 @@ def load_data_from_MAGICC(
 
 
 def _read_and_clean_magicc_csv(scenario_cols, temp_df, temp_variable, warmingfile):
-    df = pd.read_csv(warmingfile, index_col=0)
+    df = pd.read_csv(warmingfile)
+    # The following columns may be present and aren't wanted
+    # (Unnamed: 0 comes from an untitled index column)
+    to_drop_cols = ["permafrost", "Unnamed: 0"]
+    to_drop_cols = [col for col in to_drop_cols if col in df.columns]
+    df = df.drop(columns=to_drop_cols)
+    if temp_variable not in list(df["variable"]):
+        print("Warning: temp variable appears misnamed")
+        temp_variable = temp_variable.replace("Raw ", "")
     df = df.loc[df["variable"] == temp_variable]
     df.set_index(scenario_cols, drop=True, inplace=True)
     del df["unit"]
