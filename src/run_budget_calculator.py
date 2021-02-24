@@ -21,17 +21,18 @@ historical_dT = 1.05
 # case matching the mean and sd of the normal distribution which fits the likelihood,
 # in the second case matching the likelihood.
 tcre_dist = "normal"
+convert_PgC_to_GtCO2 = 3.664
 # The upper and lower bounds of the distribution of TCRE. We use units of degC per GtCO2
 # (TCRE = Transient climate response to cumulative carbon emissions)
-tcre_low = 1.0 / 3664
-tcre_high = 2.3 / 3664
+tcre_low = 1.0 / 1000 /convert_PgC_to_GtCO2
+tcre_high = 2.3 / 1000 / convert_PgC_to_GtCO2
 # likelihood is the probability that results fit between the low and high value
 likelihood = 0.6827
 # Average CO2 emissions per degree C from temperature-dependent Earth feedback loops.
 # (Units: GtCO2/C)
-earth_feedback_co2_per_C_av = -17 * 3.664
+earth_feedback_co2_per_C_av = -7.1 * convert_PgC_to_GtCO2
 # St dev CO2 emissions per degree C from temperature-dependent Earth feedback loops.
-earth_feedback_co2_per_C_stdv = 24 * 3.664
+earth_feedback_co2_per_C_stdv = 26.7 * convert_PgC_to_GtCO2
 # Any emissions that have taken place too recently to have factored into the measured
 # temperature change, and therefore must be subtracted from the budget (Units: GtCO2)
 recent_emissions = 0
@@ -208,8 +209,8 @@ for use_permafrost in (False, True):
                 tcre_dist,
                 include_magicc,
                 include_fair,
-                round(earth_feedback_co2_per_C_av, 2),
-                round(earth_feedback_co2_per_C_stdv, 2),
+                round(earth_feedback_co2_per_C_av/convert_PgC_to_GtCO2, 2),
+                round(earth_feedback_co2_per_C_stdv/convert_PgC_to_GtCO2, 2),
                 likelihood,
                 nonco2_percentile,
                 use_permafrost,
@@ -223,8 +224,8 @@ for use_permafrost in (False, True):
                 tcre_dist,
                 include_magicc,
                 include_fair,
-                round(earth_feedback_co2_per_C_av, 2),
-                round(earth_feedback_co2_per_C_stdv, 2),
+                round(earth_feedback_co2_per_C_av/convert_PgC_to_GtCO2, 2),
+                round(earth_feedback_co2_per_C_stdv/convert_PgC_to_GtCO2, 2),
                 likelihood,
                 nonco2_percentile,
                 use_permafrost,
