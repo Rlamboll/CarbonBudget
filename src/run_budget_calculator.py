@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 # The target temperature changes to achieve. (Units: C)
 dT_targets = np.arange(1.1, 2.6, 0.1)
 # The number of loops performed for each temperature
-n_loops = 100000000
+n_loops = 50000000
 # The change in temperature that will occur after zero emissions has been reached.
 # (Units: C)
 zec = 0.0
@@ -24,7 +24,7 @@ tcre_dist = "normal"
 convert_PgC_to_GtCO2 = 3.664
 # The upper and lower bounds of the distribution of TCRE. We use units of degC per GtCO2
 # (TCRE = Transient climate response to cumulative carbon emissions)
-tcre_low = 1.0 / 1000 /convert_PgC_to_GtCO2
+tcre_low = 1.0 / 1000 / convert_PgC_to_GtCO2
 tcre_high = 2.3 / 1000 / convert_PgC_to_GtCO2
 # likelihood is the probability that results fit between the low and high value
 likelihood = 0.6827
@@ -39,7 +39,7 @@ recent_emissions = 0
 # We will present the budgets at these quantiles of the TCRE.
 quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
 # Name of the output folder
-output_folder = "../Output/ar6draft4/"
+output_folder = "../Output/ar6draft4pt2/"
 # Output file location for budget data. Includes {} sections detailing inclusion of
 # TCRE, inclusion of magic/fair, earth system feedback and likelihood. More added later
 output_file = (
@@ -80,15 +80,13 @@ output_figure_file += "_" + str(peak_version) + ".pdf"
 # carbon contributions to temperature change.
 input_folder = "../InputData/Non-CO2 Permafrost AR6 emulator/"
 non_co2_magicc_file_permafrost = (
-    input_folder + "nonco2_results_20210218-sr15-nonco2_GSAT-Non-CO2.csv"
+    input_folder + "job-20210224-sr15-nonco2_Raw-GSAT-Non-CO2.csv"
 )
-non_co2_magicc_file_no_permafrost = (
-    input_folder + "non_co2_no_permafrost_noCO2.csv"
-)
-tot_magicc_file_permafrost = input_folder + "nonco2_results_20210218-sr15-nonco2_GSAT.csv"
-tot_magicc_file_nopermafrost = input_folder + "non_co2_no_permafrost_total.csv"
+non_co2_magicc_file_no_permafrost = non_co2_magicc_file_permafrost
+tot_magicc_file_permafrost = input_folder + "job-20210224-sr15-nonco2_Raw-GSAT.csv"
+tot_magicc_file_nopermafrost = tot_magicc_file_permafrost
 # The file in which we find the emissions data
-emissions_file = input_folder + "nonco2_results_20210218-sr15-nonco2_Emissions-CO2.csv"
+emissions_file = input_folder + "job-20210224-sr15-nonco2_Emissions-CO2.csv"
 # The name of the non-CO2 warming column output from in the MAGICC model file analysis
 magicc_non_co2_col = (
     "non-co2 warming (rel. to 2010-2019) at peak cumulative emissions co2"
@@ -133,6 +131,7 @@ for use_permafrost in List_use_permafrost:
         magicc_tot_temp_variable,
         temp_offset_years,
         peak_version,
+        permafrost=use_permafrost,
     )
     if magicc_savename:
         magicc_db.to_csv(magicc_savename.format(use_permafrost))

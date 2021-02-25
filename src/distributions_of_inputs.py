@@ -93,6 +93,7 @@ def load_data_from_MAGICC(
     tot_temp_variable,
     offset_years,
     peak_version=None,
+    permafrost=None,
 ):
     """
     Loads the non-CO2 warming and total warming from files in the format output by
@@ -114,12 +115,18 @@ def load_data_from_MAGICC(
         irrespective of emissions peak.
         If "nonCO2AtPeakTot", computes the non-CO2 component at the time of peak total
         temperature.
+    :param permafrost: Boolean indicating whether or not the data should include
+        permafrost.
     :return: pd.Dataframe
     """
     yeardf = pd.read_csv(yearfile, index_col=0)
     # Drop empty columns from the dataframe and calculate the year the emissions go to
     # zero
-    empty_cols = [col for col in yeardf.columns if yeardf[col].isnull().all()]
+    yeardf = _clean_columns_magicc(yeardf)
+    empty_cols = [
+        col for col in yeardf.columns
+        if ((yeardf[col].isnull().all()) or (col == "permafrost"))
+    ]
     yeardf.drop(empty_cols, axis=1, inplace=True)
     scenario_cols = ["model", "region", "scenario"]
     del yeardf["unit"]
@@ -147,10 +154,12 @@ def load_data_from_MAGICC(
     # load temperature data and get it into the same format as the emissions data.
     # Do this for both non-CO2 and CO2-only temperature.
     non_co2_df = _read_and_clean_magicc_csv(
-        scenario_cols, temp_df, magicc_nonco2_temp_variable, non_co2_magicc_file
+        scenario_cols, temp_df, magicc_nonco2_temp_variable, non_co2_magicc_file,
+        use_permafrost=permafrost
     )
     tot_df = _read_and_clean_magicc_csv(
-        scenario_cols, temp_df, tot_temp_variable, tot_magicc_file
+        scenario_cols, temp_df, tot_temp_variable, tot_magicc_file,
+        use_permafrost=permafrost
     )
     # For each scenario, we subtract the average temperature from the offset years
     for ind, row in tot_df.iterrows():
@@ -171,16 +180,42 @@ def load_data_from_MAGICC(
     return temp_df
 
 
-def _read_and_clean_magicc_csv(scenario_cols, temp_df, temp_variable, warmingfile):
+def _clean_columns_magicc(df):
+    to_drop_cols = [
+        "Unnamed: 0", "Category", "Category_name",
+        "Exceedance Probability 1.5C|MAGICCv7.5.1",
+        "Exceedance Probability 2.0C|MAGICCv7.5.1",
+        "Exceedance Probability 2.5C|MAGICCv7.5.1",
+        "Exceedance Probability 3.0C|MAGICCv7.5.1", "climate-models", "exclude",
+        "harmonization", "infilling","median peak warming (MAGICCv7.5.1)",
+        "median warming at peak (MAGICCv7.5.1)",
+        "median warming in 2100 (MAGICCv7.5.1)",
+        "median year of peak warming (MAGICCv7.5.1)", "model_scenario",
+        "p67 peak warming (MAGICCv7.5.1)",
+        "p67 warming at peak (MAGICCv7.5.1)",
+        "p67 warming in 2100 (MAGICCv7.5.1)", "p67 year of peak warming (MAGICCv7.5.1)",
+        "pipeline",
+        "year of peak median warming (MAGICCv7.5.1)",
+        "year of peak p67 warming (MAGICCv7.5.1)"
+    ]
+    to_drop_cols = [col for col in to_drop_cols if col in df.columns]
+    return df.drop(columns=to_drop_cols)
+
+
+def _read_and_clean_magicc_csv(
+        scenario_cols, temp_df, temp_variable, warmingfile, use_permafrost=None
+):
     df = pd.read_csv(warmingfile)
     # The following columns may be present and aren't wanted
     # (Unnamed: 0 comes from an untitled index column)
-    to_drop_cols = ["permafrost", "Unnamed: 0"]
-    to_drop_cols = [col for col in to_drop_cols if col in df.columns]
-    df = df.drop(columns=to_drop_cols)
-    if temp_variable not in list(df["variable"]):
-        print("Warning: temp variable appears misnamed")
-        temp_variable = temp_variable.replace("Raw ", "")
+    df = _clean_columns_magicc(df)
+    if use_permafrost is not None:
+        if "permafrost" in df.columns:
+            df = df[df.permafrost == use_permafrost]
+            df = df.drop(columns="permafrost")
+        else:
+            print("Warning: it's unclear whether the MAGICC file is for permafrost or not")
+
     df = df.loc[df["variable"] == temp_variable]
     df.set_index(scenario_cols, drop=True, inplace=True)
     del df["unit"]
