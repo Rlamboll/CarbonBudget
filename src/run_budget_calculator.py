@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 # The target temperature changes to achieve. (Units: C)
 dT_targets = np.arange(1.1, 2.6, 0.1)
 # The number of loops performed for each temperature
-n_loops = 10000000
+n_loops = 100000000
 # The change in temperature that will occur after zero emissions has been reached.
 # (Units: C)
 zec = 0.0
@@ -48,15 +48,19 @@ output_file = (
 # Output location for figure of peak warming vs non-CO2 warming. More appended later
 output_figure_file = output_folder + "non_co2_cont_to_peak_warming_magicc_{}_fair_{}_permaf_{}"
 # Quantile fit lines to plot on the temperatures graph.
-# If use_median_non_co2 == True, this must include 0.5, as we use this value
+# If use_as_median_non_co2 evaluates as True, this must include that quantile (by
+# default 0.5)
 quantiles_to_plot = [0.05, 0.5, 0.95]
 # How should we dot these lines? This list must be as long as quantiles_to_plot.
 line_dotting = ["--", "-", "--"]
 # Should we use the median value from quantile regression (True) or the least-squares
-# best fit (False) for the non-CO2 relationship?
-use_median_non_co2 = True
+# best fit (False) for the non-CO2 relationship? If instead a number is used, we use
+# that quantile, which must be in quantiles_to_plot.
+use_as_median_non_co2 = True
 # Where should we save the results of the figure with trend lines? Not plotted if
-# use_median_non_co2 is True.
+# use_median_non_co2 evaluates as True.
+if use_as_median_non_co2 != True:
+    output_file = output_file + "_nonco2scenfrac" + str(use_as_median_non_co2)
 output_all_trends = output_folder + "TrendLinesWithMagicc_permaf_{}.pdf"
 
 #       Information for reading in files used to calculate non-CO2 component:
@@ -106,10 +110,12 @@ magicc_savename = output_folder + "magicc_nonCO2_temp_{}Percentile".format(
 # Years over which we set the average temperature to 0.
 # Note that the upper limit of the range is not included in python.
 temp_offset_years = np.arange(2010, 2020, 1)
+# Use permafrost may be True, False or both
+List_use_permafrost = [False]
 
 # ______________________________________________________________________________________
 # The parts below should not need editing
-for use_permafrost in (False, True):
+for use_permafrost in List_use_permafrost:
     if use_permafrost:
         non_co2_magicc_file = non_co2_magicc_file_permafrost
         tot_magicc_file = tot_magicc_file_permafrost
@@ -155,10 +161,12 @@ for use_permafrost in (False, True):
             all_non_co2_db = magicc_db[[magicc_non_co2_col, magicc_temp_col]]
         else:
             raise ValueError("You must include either magicc or fair data")
-        if use_median_non_co2:
-            assert 0.5 in quantiles_to_plot, (
-                "The median value, quantiles_to_plot=0.5, "
-                "must be included if use_median_non_co2==True"
+        if use_as_median_non_co2:
+            if type(use_as_median_non_co2) == bool:
+                use_as_median_non_co2 = 0.5
+            assert use_as_median_non_co2 in quantiles_to_plot, (
+                "The median value, use_as_median_non_co2, normally=0.5, "
+                "must be included if use_as_median_non_co2 is not false"
             )
             # The quantile regression program is temperamental, so we ensure the data has
             # the correct numeric format before passing it
@@ -170,7 +178,7 @@ for use_permafrost in (False, True):
                 xy_df, quantiles_to_plot
             )
             non_co2_dTs = distributions.establish_median_temp_dep(
-                quantile_reg_trends, dT_targets - historical_dT
+                quantile_reg_trends, dT_targets - historical_dT, use_as_median_non_co2
             )
         else:
             # If not quantile regression, we use the least squares fit to the non-CO2 data
@@ -274,7 +282,7 @@ for use_permafrost in (False, True):
         plt.legend(legend_text)
         plt.ylabel(magicc_non_co2_col)
         plt.xlabel(magicc_temp_col)
-        if not use_median_non_co2:
+        if not use_as_median_non_co2:
             x = all_non_co2_db[magicc_temp_col]
             y = all_non_co2_db[magicc_non_co2_col]
             equation_of_fit = np.polyfit(x, y, 1)
@@ -331,7 +339,7 @@ for use_permafrost in (False, True):
         )
     plt.close()
     # Plot all trendlines together, if data was processed without median values
-    if not use_median_non_co2:
+    if not use_as_median_non_co2:
         x = temp_plot_limits
         y = non_co2_plot_limits
         fig = plt.figure(figsize=(12, 7))

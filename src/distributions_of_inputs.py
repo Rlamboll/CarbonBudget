@@ -62,7 +62,7 @@ def tcre_distribution(low, high, likelihood, n_return, tcre_dist):
     )
 
 
-def establish_median_temp_dep(models, temps):
+def establish_median_temp_dep(models, temps, quantile):
     """
     Calculates the median line of fit
     :param models: pd.Database.
@@ -73,8 +73,8 @@ def establish_median_temp_dep(models, temps):
     """
     return pd.Series(
         index=temps,
-        data=models["b"].loc[models["quantile"] == 0.5].iloc[0] * temps
-        + models["a"].loc[models["quantile"] == 0.5].iloc[0],
+        data=models["b"].loc[models["quantile"] == quantile].iloc[0] * temps
+        + models["a"].loc[models["quantile"] == quantile].iloc[0],
     )
 
 
