@@ -215,6 +215,11 @@ def _read_and_clean_magicc_csv(
             df = df.drop(columns="permafrost")
         else:
             print("Warning: it's unclear whether the MAGICC file is for permafrost or not")
+    elif "permafrost" in df.columns:
+        raise ValueError(
+            "The input data contains permafrost information but we have not "
+            "given instructions with what to do with it."
+        )
 
     df = df.loc[df["variable"] == temp_variable]
     df.set_index(scenario_cols, drop=True, inplace=True)

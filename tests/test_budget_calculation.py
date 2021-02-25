@@ -74,7 +74,7 @@ def test_mismanaged_mixed_calculation_of_budgets():
         "operands could not be broadcast together with shapes (2,) (3,)"
     )
     with pytest.raises(ValueError, match=error_message):
-        budget = calc.calculate_budget(
+        calc.calculate_budget(
             dT_target, zec, historical_dT, non_co2_dT, tcre, earth_feedback_co2
         )
 

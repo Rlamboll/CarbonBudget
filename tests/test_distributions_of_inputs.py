@@ -98,3 +98,66 @@ def test_establish_median_temp_dep_not_skewed():
     returned = distributions.establish_median_temp_dep(relations, temp, 0.5)
     # The above data has a 1:1 relationship, so we expect to receive the temp back again
     assert all(abs(x - y) < 1e-10 for x, y in zip(returned, temp))
+
+
+
+def test_load_data_from_MAGICC():
+    magicc_file_for_tests_to_use = "magicc_file_for_tests_to_use.csv"
+    magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.5.1|10.0th Percentile"
+    offset_years = np.arange(2010, 2020, 1)
+    # The name of the peak temperature column output
+    with pytest.raises(ValueError,
+                   match="The input data contains permafrost information but we have not "
+                         "given instructions with what to do with it."
+                   ):
+        distributions.load_data_from_MAGICC(
+            magicc_file_for_tests_to_use,
+            magicc_file_for_tests_to_use,
+            magicc_file_for_tests_to_use,
+            magicc_nonco2_temp_variable,
+            magicc_nonco2_temp_variable,
+            magicc_nonco2_temp_variable,
+            magicc_nonco2_temp_variable,
+            offset_years,
+            peak_version=None,
+            permafrost=None,
+        )
+
+
+def test_magicc_loader_works_with_permafrost():
+    magicc_file_for_tests_to_use = "magicc_file_for_tests_to_use.csv"
+    total_magicc_file = "magicc_file_for_tests_to_use_totaltemp.csv"
+    magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.5.1|10.0th Percentile"
+    magicc_tot_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.5.1|10.0th Percentile"
+    emissions_file = "emissions_test_file.csv"
+    offset_years = np.arange(2010, 2020, 1)
+    # The name of the peak temperature column output
+    permafrost_on = distributions.load_data_from_MAGICC(
+        magicc_file_for_tests_to_use,
+        total_magicc_file,
+        emissions_file,
+        magicc_nonco2_temp_variable,
+        magicc_tot_temp_variable,
+        magicc_nonco2_temp_variable,
+        magicc_tot_temp_variable,
+        offset_years,
+        peak_version=None,
+        permafrost=True,
+    )
+    permafrost_off = distributions.load_data_from_MAGICC(
+        magicc_file_for_tests_to_use,
+        total_magicc_file,
+        emissions_file,
+        magicc_nonco2_temp_variable,
+        magicc_tot_temp_variable,
+        magicc_nonco2_temp_variable,
+        magicc_tot_temp_variable,
+        offset_years,
+        peak_version=None,
+        permafrost=False,
+    )
+    assert len(permafrost_on) == 2
+    assert len(permafrost_off) == 2
+    compare = permafrost_on - permafrost_off
+    assert not (compare.isna().all().all())
+    assert not any([a == 0 for a in compare])
