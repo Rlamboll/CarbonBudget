@@ -116,7 +116,8 @@ def load_data_from_MAGICC(
         If "nonCO2AtPeakTot", computes the non-CO2 component at the time of peak total
         temperature.
     :param permafrost: Boolean indicating whether or not the data should include
-        permafrost.
+        permafrost corrections. If none (default) all data is accepted from the files
+        read. Otherwise the files must have a permafrost column for this to filter.
     :return: pd.Dataframe
     """
     yeardf = pd.read_csv(yearfile, index_col=0)

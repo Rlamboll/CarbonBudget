@@ -30,7 +30,7 @@ tcre_high = 2.3 / 1000 / convert_PgC_to_GtCO2
 likelihood = 0.6827
 # Average CO2 emissions per degree C from temperature-dependent Earth feedback loops.
 # (Units: GtCO2/C)
-earth_feedback_co2_per_C_av = -7.1 * convert_PgC_to_GtCO2
+earth_feedback_co2_per_C_av = 7.1 * convert_PgC_to_GtCO2
 # St dev CO2 emissions per degree C from temperature-dependent Earth feedback loops.
 earth_feedback_co2_per_C_stdv = 26.7 * convert_PgC_to_GtCO2
 # Any emissions that have taken place too recently to have factored into the measured
