@@ -15,7 +15,7 @@ n_loops = 50000000
 # (Units: C)
 zec = 0.0
 # The temperature difference already seen. (Units: C)
-historical_dT = 1.05
+historical_dT = 1.07
 # The distribution of the TCRE function - either "normal". "lognormal mean match" or
 # "lognormal". The latter two cases are lognormal distributions, in the first
 # case matching the mean and sd of the normal distribution which fits the likelihood,
@@ -43,7 +43,7 @@ output_folder = "../Output/ar6draft4pt2/"
 # Output file location for budget data. Includes {} sections detailing inclusion of
 # TCRE, inclusion of magic/fair, earth system feedback and likelihood. More added later
 output_file = (
-    output_folder + "budget_{}_magicc_{}_fair_{}_esf_{}pm{}_likeli_{}_nonCO2pc{}_GtCO2_permaf_{}"
+    output_folder + "budget_{}_magicc_{}_fair_{}_esf_{}pm{}_likeli_{}_nonCO2pc{}_GtCO2_permaf_{}_hdT_{}"
 )
 # Output location for figure of peak warming vs non-CO2 warming. More appended later
 output_figure_file = output_folder + "non_co2_cont_to_peak_warming_magicc_{}_fair_{}_permaf_{}"
@@ -221,6 +221,7 @@ for use_permafrost in List_use_permafrost:
                 likelihood,
                 nonco2_percentile,
                 use_permafrost,
+                historical_dT,
             )
         )
         # Convert the data to PgC and save again
@@ -236,6 +237,7 @@ for use_permafrost in List_use_permafrost:
                 likelihood,
                 nonco2_percentile,
                 use_permafrost,
+                historical_dT,
             ).replace("GtCO2", "PgC")
         )
 
