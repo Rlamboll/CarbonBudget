@@ -1,4 +1,8 @@
+import sys
+sys.path.append("..")
+
 import numpy as np
+import os.path
 import pandas as pd
 import src.distributions_of_inputs as distributions
 import src.budget_calculator_functions as budget_func
@@ -176,6 +180,7 @@ for use_permafrost in List_use_permafrost:
             quantile_reg_trends = budget_func.quantile_regression_find_relationships(
                 xy_df, quantiles_to_plot
             )
+            quantile_reg_trends.to_csv(os.path.join(output_folder, "nonco2_quantile_regressions.csv"))
             non_co2_dTs = distributions.establish_median_temp_dep(
                 quantile_reg_trends, dT_targets - historical_dT, use_as_median_non_co2
             )
@@ -188,6 +193,7 @@ for use_permafrost in List_use_permafrost:
                 magicc_temp_col,
             )
 
+        contribs = []
         for dT_target in dT_targets:
             earth_feedback_co2 = budget_func.calculate_earth_system_feedback_co2(
                 dT_target - historical_dT,
@@ -206,6 +212,22 @@ for use_permafrost in List_use_permafrost:
             budget_quantiles.loc[dT_target] = np.quantile(
                 budgets, inverse_quantiles_to_report
             )
+
+            dT_CO2 = dT_target - historical_dT - zec - non_co2_dT
+            budget_median = np.quantile(budgets, 0.5) * 12 /44
+            contribs.append({
+                "dT_peak": dT_target,
+                "dT_hist": historical_dT,
+                "dT_ZEC": zec,
+                "dT_nonCO2": non_co2_dT,
+                "dT_CO2": dT_CO2,
+                "tcre_median": np.quantile(tcres, 0.5) * 44 / 12 * 10 ** 3,
+                "E_OUP_median": np.quantile(earth_feedback_co2, 0.5) * 12 / 44,
+                "budget_median": budget_median,
+            })
+
+        contribs = pd.DataFrame(contribs)
+        contribs.to_csv(os.path.join(output_folder, "budget_contributions.csv"), index=False)
 
         # Save output in the correct format
         budget_quantiles = budget_quantiles.reset_index()

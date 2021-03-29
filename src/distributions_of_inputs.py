@@ -11,7 +11,7 @@ def tcre_distribution(low, high, likelihood, n_return, tcre_dist):
     :param low: float
         The lower limit of the probability distribution
     :param high: float
-        The upper limit of the probability distribution. Must be larger than low. 
+        The upper limit of the probability distribution. Must be larger than low.
     :param likelihood: float
         Probability (between 0 and 1) that the value will be between low and high
     :param n_return: int
@@ -152,6 +152,7 @@ def load_data_from_MAGICC(
         temp_df = pd.DataFrame(
             index=total_co2.index, columns=[tot_col, non_co2_col], dtype=np.float64
         )
+
     # load temperature data and get it into the same format as the emissions data.
     # Do this for both non-CO2 and CO2-only temperature.
     non_co2_df = _read_and_clean_magicc_csv(
@@ -164,8 +165,14 @@ def load_data_from_MAGICC(
     )
     # For each scenario, we subtract the average temperature from the offset years
     for ind, row in tot_df.iterrows():
+        temp_at_zero_co2 = tot_df.loc[ind][zero_years.loc[ind]]
         temp = max(tot_df.loc[ind])
-        temp_df[tot_col][ind] = temp - tot_df.loc[ind][offset_years].mean()
+        temp_to_use = temp_at_zero_co2
+        temp_to_use = temp
+        # import pdb
+        # pdb.set_trace()
+        temp_df[tot_col][ind] = temp_to_use - tot_df.loc[ind][offset_years].mean()
+
     for ind, row in non_co2_df.iterrows():
         if not peak_version:
             temp = non_co2_df.loc[ind][zero_years.loc[ind]]
@@ -176,6 +183,7 @@ def load_data_from_MAGICC(
             temp = non_co2_df.loc[ind].iloc[max_year]
         else:
             raise ValueError("Invalid choice for peak_version {}".format(peak_version))
+
         temp_df[non_co2_col][ind] = temp - non_co2_df.loc[ind][offset_years].mean()
 
     return temp_df
