@@ -16,10 +16,10 @@ n_loops = 50000000
 zec = 0.0
 # The temperature difference already seen. (Units: C)
 historical_dT = 1.07
-# The distribution of the TCRE function - either "normal". "lognormal mean match" or
+# The distribution of the TCRE function - either "normal", "lognormal mean match" or
 # "lognormal". The latter two cases are lognormal distributions, in the first
 # case matching the mean and sd of the normal distribution which fits the likelihood,
-# in the second case matching the likelihood.
+# in the second case matching the likelihood limits itself but exhibiting some skew.
 tcre_dist = "normal"
 convert_PgC_to_GtCO2 = 3.664
 # The upper and lower bounds of the distribution of TCRE. We use units of degC per GtCO2
@@ -36,7 +36,7 @@ earth_feedback_co2_per_C_stdv = 26.7 * convert_PgC_to_GtCO2
 # Any emissions that have taken place too recently to have factored into the measured
 # temperature change, and therefore must be subtracted from the budget (Units: GtCO2)
 recent_emissions = 0
-# We will present the budgets at these quantiles of the TCRE.
+# We will present the budgets at these probability quantiles.
 quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
 # Name of the output folder
 output_folder = "../Output/ar6draft4pt2/"
@@ -143,7 +143,7 @@ for use_permafrost in List_use_permafrost:
     # Modify the following loop to use subsets of data for robustness checks
     for case_ind in range(1):
         # At some point we may want to check robustnesss to including alternative simplified
-        #  models to evaluate non-CO2 impacts.
+        # models to evaluate non-CO2 impacts. Currently only MAGICC data is used.
         include_magicc = True
         include_fair = False
 
@@ -288,8 +288,13 @@ for use_permafrost in List_use_permafrost:
             y = all_non_co2_db[magicc_non_co2_col]
             equation_of_fit = np.polyfit(x, y, 1)
             all_fit_lines.append(equation_of_fit)
-            plt.plot(np.unique(x), np.poly1d(equation_of_fit)(np.unique(x)), color="black")
-            equation_text = "y = " + str(round(equation_of_fit[0], 4)) + "x" " + " + str(
+            plt.plot(
+                np.unique(x), np.poly1d(equation_of_fit)(np.unique(x)), color="black"
+            )
+            # Write the equation
+            equation_text = "y = " + str(
+                round(equation_of_fit[0], 4)
+            ) + "x" " + " + str(
                 round(equation_of_fit[1], 4)
             )
             plt.text(
