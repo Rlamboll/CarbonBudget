@@ -184,6 +184,16 @@ def load_data_from_MAGICC(
 def _clean_columns_magicc(df):
     to_drop_cols = [
         "Unnamed: 0", "Category", "Category_name",
+        "Exceedance Probability 1.5C (MAGICCv7.5.3)",
+        "Exceedance Probability 2.0C (MAGICCv7.5.3)",
+        "Exceedance Probability 2.5C (MAGICCv7.5.3)",
+        "Exceedance Probability 3.0C (MAGICCv7.5.3)", "climate-models", "exclude",
+        "median peak warming (MAGICCv7.5.3)",
+        "median warming in 2100 (MAGICCv7.5.3)",
+        "median year of peak warming (MAGICCv7.5.3)",
+        "p33 peak warming (MAGICCv7.5.3)", "p33 warming in 2100 (MAGICCv7.5.3)",
+        "p33 year of peak warming (MAGICCv7.5.3)", "p67 peak warming (MAGICCv7.5.3)",
+        "p67 warming in 2100 (MAGICCv7.5.3)", "p67 year of peak warming (MAGICCv7.5.3)",
         "Exceedance Probability 1.5C|MAGICCv7.5.1",
         "Exceedance Probability 2.0C|MAGICCv7.5.1",
         "Exceedance Probability 2.5C|MAGICCv7.5.1",

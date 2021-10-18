@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 # The target temperature changes to achieve. (Units: C)
 dT_targets = np.arange(1.1, 2.6, 0.1)
 # The number of loops performed for each temperature
-n_loops = 50000000
+n_loops = 500000000
 # The change in temperature that will occur after zero emissions has been reached.
 # (Units: C)
 zec = 0.0
@@ -35,11 +35,11 @@ earth_feedback_co2_per_C_av = 7.1 * convert_PgC_to_GtCO2
 earth_feedback_co2_per_C_stdv = 26.7 * convert_PgC_to_GtCO2
 # Any emissions that have taken place too recently to have factored into the measured
 # temperature change, and therefore must be subtracted from the budget (Units: GtCO2)
-recent_emissions = 0
+recent_emissions = 210
 # We will present the budgets at these probability quantiles.
 quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
 # Name of the output folder
-output_folder = "../Output/ar6draft4pt2/"
+output_folder = "../Output/ar6wg3draft2/"
 # Output file location for budget data. Includes {} sections detailing inclusion of
 # TCRE, inclusion of magic/fair, earth system feedback and likelihood. More added later
 output_file = (
@@ -78,15 +78,15 @@ output_file += "_" + str(peak_version) + ".csv"
 output_figure_file += "_" + str(peak_version) + ".pdf"
 # The folder and files in which we find the MAGICC model estimate for the non-carbon and
 # carbon contributions to temperature change.
-input_folder = "../InputData/Non-CO2 Permafrost AR6 emulator/"
+input_folder = "../InputData/second_iteration_AR6emWG3scen/"
 non_co2_magicc_file_permafrost = (
-    input_folder + "job-20210224-sr15-nonco2_Raw-GSAT-Non-CO2.csv"
+    input_folder + "job-20211012-ar6-nonco2_Raw-GSAT-Non-CO2.csv"
 )
 non_co2_magicc_file_no_permafrost = non_co2_magicc_file_permafrost
-tot_magicc_file_permafrost = input_folder + "job-20210224-sr15-nonco2_Raw-GSAT.csv"
+tot_magicc_file_permafrost = input_folder + "job-20211012-ar6-nonco2_Raw-GSAT.csv"
 tot_magicc_file_nopermafrost = tot_magicc_file_permafrost
 # The file in which we find the emissions data
-emissions_file = input_folder + "job-20210224-sr15-nonco2_Emissions-CO2.csv"
+emissions_file = input_folder + "job-20211012-ar6-nonco2_Emissions-CO2.csv"
 # The name of the non-CO2 warming column output from in the MAGICC model file analysis
 magicc_non_co2_col = (
     "non-co2 warming (rel. to 2010-2019) at peak cumulative emissions co2"
@@ -96,10 +96,10 @@ magicc_temp_col = "peak surface temperature (rel. to 2010-2019)"
 # The percentile to use for non-CO2 temperature change (for each scenario separately)
 nonco2_percentile = 50
 # The names of the temperature variables in MAGICC files (also specifies the quantile)
-magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.5.1|{}.0th Percentile".format(
+magicc_nonco2_temp_variable = "AR6 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.5.3|{}.0th Percentile".format(
     nonco2_percentile
 )
-magicc_tot_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.5.1|50.0th Percentile"
+magicc_tot_temp_variable = "AR6 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.5.3|50.0th Percentile"
 # Do we want to save the output of the MAGICC analysis? If so, give a file name with a
 # variable in it. Otherwise leave as None
 magicc_savename = output_folder + "magicc_nonCO2_temp_{}Percentile".format(
