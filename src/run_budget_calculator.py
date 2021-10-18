@@ -3,6 +3,7 @@ import pandas as pd
 import src.distributions_of_inputs as distributions
 import src.budget_calculator_functions as budget_func
 import matplotlib.pyplot as plt
+import time
 
 # Input values
 # ______________________________________________________________________________________
@@ -10,7 +11,7 @@ import matplotlib.pyplot as plt
 # The target temperature changes to achieve. (Units: C)
 dT_targets = np.arange(1.1, 2.6, 0.1)
 # The number of loops performed for each temperature
-n_loops = 500000000
+n_loops = 100000000
 # The change in temperature that will occur after zero emissions has been reached.
 # (Units: C)
 zec = 0.0
@@ -113,6 +114,7 @@ List_use_permafrost = [False]
 
 # ______________________________________________________________________________________
 # The parts below should not need editing
+t0 = time.time()
 for use_permafrost in List_use_permafrost:
     if use_permafrost:
         non_co2_magicc_file = non_co2_magicc_file_permafrost
@@ -150,16 +152,8 @@ for use_permafrost in List_use_permafrost:
         budget_quantiles = pd.DataFrame(index=dT_targets, columns=quantiles_to_report)
         budget_quantiles.index.name = "dT_targets"
 
-        if include_fair and include_magicc:
-            all_non_co2_db = magicc_db[[magicc_non_co2_col, magicc_temp_col]].append(
-                non_co2_dT_fair
-            )
-        elif include_fair:
-            all_non_co2_db = non_co2_dT_fair
-        elif include_magicc:
-            all_non_co2_db = magicc_db[[magicc_non_co2_col, magicc_temp_col]]
-        else:
-            raise ValueError("You must include either magicc or fair data")
+        all_non_co2_db = magicc_db[[magicc_non_co2_col, magicc_temp_col]]
+
         if use_as_median_non_co2:
             if type(use_as_median_non_co2) == bool:
                 use_as_median_non_co2 = 0.5
@@ -360,5 +354,5 @@ for use_permafrost in List_use_permafrost:
         plt.ylabel(magicc_non_co2_col)
         plt.xlabel(magicc_temp_col)
         fig.savefig(output_all_trends.format(use_permafrost))
-
+print("Time taken: ", time.time() - t0)
 print("The analysis has completed.")
