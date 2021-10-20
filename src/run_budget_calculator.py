@@ -36,7 +36,7 @@ earth_feedback_co2_per_C_av = 7.1 * convert_PgC_to_GtCO2
 earth_feedback_co2_per_C_stdv = 26.7 * convert_PgC_to_GtCO2
 # Any emissions that have taken place too recently to have factored into the measured
 # temperature change, and therefore must be subtracted from the budget (Units: GtCO2)
-recent_emissions = 210
+recent_emissions = 0
 # We will present the budgets at these probability quantiles.
 quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
 # Name of the output folder
@@ -75,19 +75,21 @@ output_all_trends = output_folder + "TrendLinesWithMagicc_permaf_{}.pdf"
 # If "nonCO2AtPeakTot", computes the non-CO2 component at the time of peak total
 # temperature.
 peak_version = None  # "nonCO2AtPeakTot"
-output_file += "_" + str(peak_version) + ".csv"
+output_file += "_" + str(peak_version) + "_recEm" + str(round(recent_emissions)) + ".csv"
 output_figure_file += "_" + str(peak_version) + ".pdf"
 # The folder and files in which we find the MAGICC model estimate for the non-carbon and
 # carbon contributions to temperature change.
 input_folder = "../InputData/second_iteration_AR6emWG3scen/"
+# The files are stored with a job number
+jobno = 20211019
 non_co2_magicc_file_permafrost = (
-    input_folder + "job-20211012-ar6-nonco2_Raw-GSAT-Non-CO2.csv"
+    input_folder + f"job-{jobno}-ar6-nonco2_Raw-GSAT-Non-CO2.csv"
 )
 non_co2_magicc_file_no_permafrost = non_co2_magicc_file_permafrost
-tot_magicc_file_permafrost = input_folder + "job-20211012-ar6-nonco2_Raw-GSAT.csv"
+tot_magicc_file_permafrost = input_folder + f"job-{jobno}-ar6-nonco2_Raw-GSAT.csv"
 tot_magicc_file_nopermafrost = tot_magicc_file_permafrost
 # The file in which we find the emissions data
-emissions_file = input_folder + "job-20211012-ar6-nonco2_Emissions-CO2.csv"
+emissions_file = input_folder + f"job-{jobno}-ar6-nonco2_Emissions-CO2.csv"
 # The name of the non-CO2 warming column output from in the MAGICC model file analysis
 magicc_non_co2_col = (
     "non-co2 warming (rel. to 2010-2019) at peak cumulative emissions co2"
@@ -101,6 +103,8 @@ magicc_nonco2_temp_variable = "AR6 climate diagnostics|Raw Surface Temperature (
     nonco2_percentile
 )
 magicc_tot_temp_variable = "AR6 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.5.3|50.0th Percentile"
+# We also check that the scenarios used in the MAGICC are those that pass the vetting process
+vetted_scen_list_file = input_folder + "ar6_full_metadata_indicators2021_10_14_v3.xlsx"
 # Do we want to save the output of the MAGICC analysis? If so, give a file name with a
 # variable in it. Otherwise leave as None
 magicc_savename = output_folder + "magicc_nonCO2_temp_{}Percentile".format(
@@ -134,10 +138,10 @@ for use_permafrost in List_use_permafrost:
         temp_offset_years,
         peak_version,
         permafrost=use_permafrost,
+        vetted_scen_list_file=vetted_scen_list_file,
     )
     if magicc_savename:
         magicc_db.to_csv(magicc_savename.format(use_permafrost))
-    non_co2_dT_fair = np.nan  # We currently do not consider the impact of the FaIR model
     # We interpret the higher quantiles as meaning a smaller budget
     inverse_quantiles_to_report = 1 - quantiles_to_report
     # Construct the container for saved results
@@ -265,13 +269,7 @@ for use_permafrost in List_use_permafrost:
                 magicc_db[magicc_temp_col], magicc_db[magicc_non_co2_col], color="blue"
             )
             legend_text.append("MAGICC")
-        if include_fair:
-            plt.scatter(
-                non_co2_dT_fair[magicc_temp_col],
-                non_co2_dT_fair[magicc_non_co2_col],
-                color="orange",
-            )
-            legend_text.append("FaIR")
+
         plt.xlim(temp_plot_limits)
         plt.ylim(non_co2_plot_limits)
         plt.legend(legend_text)
