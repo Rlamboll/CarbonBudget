@@ -47,7 +47,7 @@ output_file = (
     output_folder + "budget_{}_magicc_{}_fair_{}_esf_{}pm{}_likeli_{}_nonCO2pc{}_GtCO2_permaf_{}_hdT_{}"
 )
 # Output location for figure of peak warming vs non-CO2 warming. More appended later
-output_figure_file = output_folder + "non_co2_cont_to_peak_warming_magicc_{}_fair_{}_permaf_{}"
+output_figure_file = output_folder + "non_co2_cont_to_peak_warming_magicc_{}_fair_{}_permaf_{}_nonCO2pc{}"
 # Quantile fit lines to plot on the temperatures graph.
 # If use_as_median_non_co2 evaluates as True, this must include that quantile (by
 # default 0.5)
@@ -332,7 +332,9 @@ for use_permafrost in List_use_permafrost:
                     color="black",
                 )
         fig.savefig(
-            output_figure_file.format(include_magicc, include_fair, use_permafrost),
+            output_figure_file.format(
+                include_magicc, include_fair, use_permafrost, nonco2_percentile
+            ),
             bbox_inches="tight"
         )
     plt.close()
