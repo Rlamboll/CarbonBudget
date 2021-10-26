@@ -11,7 +11,8 @@ import time
 # The target temperature changes to achieve. (Units: C)
 dT_targets = np.arange(1.1, 2.6, 0.1)
 # The number of loops performed for each temperature
-n_loops = 100000000
+# TODO: increase if doing anything other than plotting figures
+n_loops = 1000000 # 100000000
 # The change in temperature that will occur after zero emissions has been reached.
 # (Units: C)
 zec = 0.0
@@ -40,7 +41,7 @@ recent_emissions = 0
 # We will present the budgets at these probability quantiles.
 quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
 # Name of the output folder
-output_folder = "../Output/ar6wg3draft2/"
+output_folder = "../Output/ar6wg3draft2/figWork/"
 # Output file location for budget data. Includes {} sections detailing inclusion of
 # TCRE, inclusion of magic/fair, earth system feedback and likelihood. More added later
 output_file = (
@@ -258,8 +259,8 @@ for use_permafrost in List_use_permafrost:
             return limits
 
         # 0.04 is chosen for the fringes for aesthetic reasons
-        temp_plot_limits = add_fringe(temp_plot_limits, 0.04)
-        non_co2_plot_limits = add_fringe(non_co2_plot_limits, 0.04)
+        temp_plot_limits = [0.258, 1.3] # add_fringe(temp_plot_limits, 0.04)
+        non_co2_plot_limits = [-0.075, 0.435] # add_fringe(non_co2_plot_limits, 0.04)
         plt.close()
         fig = plt.figure(figsize=(12, 7))
         ax = fig.add_subplot(111)
@@ -268,11 +269,10 @@ for use_permafrost in List_use_permafrost:
             plt.scatter(
                 magicc_db[magicc_temp_col], magicc_db[magicc_non_co2_col], color="blue"
             )
-            legend_text.append("MAGICC")
+            legend_text.append("Scenarios")
 
         plt.xlim(temp_plot_limits)
         plt.ylim(non_co2_plot_limits)
-        plt.legend(legend_text)
         plt.ylabel(magicc_non_co2_col)
         plt.xlabel(magicc_temp_col)
         if not use_as_median_non_co2:
@@ -331,6 +331,8 @@ for use_permafrost in List_use_permafrost:
                     ls=line_dotting[i],
                     color="black",
                 )
+                legend_text.append(f'{round(100*quantile_reg_trends["quantile"].iloc[i])}th percentile')
+        plt.legend(legend_text[::-1])
         fig.savefig(
             output_figure_file.format(
                 include_magicc, include_fair, use_permafrost, nonco2_percentile
