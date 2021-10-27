@@ -10,7 +10,8 @@ import time
 
 # The target temperature changes to achieve. (Units: C)
 dT_targets = np.arange(1.1, 2.6, 0.1)
-# The number of loops performed for each temperature
+# The number of loops performed for each temperature. Runs in seconds for ~ 10^6, higher
+# reduces statistical error but takes longer
 n_loops = 100000000
 # The change in temperature that will occur after zero emissions has been reached.
 # (Units: C)
@@ -36,11 +37,11 @@ earth_feedback_co2_per_C_av = 7.1 * convert_PgC_to_GtCO2
 earth_feedback_co2_per_C_stdv = 26.7 * convert_PgC_to_GtCO2
 # Any emissions that have taken place too recently to have factored into the measured
 # temperature change, and therefore must be subtracted from the budget (Units: GtCO2)
-recent_emissions = 0
+recent_emissions = 208.81  # 0
 # We will present the budgets at these probability quantiles.
 quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
 # Name of the output folder
-output_folder = "../Output/ar6wg3draft2/"
+output_folder = "../Output/ar6wg3draft2/peakingInvest/"
 # Output file location for budget data. Includes {} sections detailing inclusion of
 # TCRE, inclusion of magic/fair, earth system feedback and likelihood. More added later
 output_file = (
@@ -74,7 +75,9 @@ output_all_trends = output_folder + "TrendLinesWithMagicc_permaf_{}.pdf"
 # irrespective of emissions peak.
 # If "nonCO2AtPeakTot", computes the non-CO2 component at the time of peak total
 # temperature.
-peak_version = None  # "nonCO2AtPeakTot"
+# If "officialNZ" uses the date of net zero in the metadata used to validate the
+# scenarios - validation file must also be used.
+peak_version = "officialNZ"  # "nonCO2AtPeakTot"
 output_file += "_" + str(peak_version) + "_recEm" + str(round(recent_emissions)) + ".csv"
 output_figure_file += "_" + str(peak_version) + ".pdf"
 # The folder and files in which we find the MAGICC model estimate for the non-carbon and
@@ -119,6 +122,8 @@ List_use_permafrost = [False]
 # ______________________________________________________________________________________
 # The parts below should not need editing
 t0 = time.time()
+if peak_version and (peak_version == "officialNZ"):
+    assert vetted_scen_list_file is not None
 for use_permafrost in List_use_permafrost:
     if use_permafrost:
         non_co2_magicc_file = non_co2_magicc_file_permafrost
