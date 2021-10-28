@@ -41,7 +41,7 @@ recent_emissions = 208.81  # 0
 # We will present the budgets at these probability quantiles.
 quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
 # Name of the output folder
-output_folder = "../Output/ar6wg3draft2/separate_models/"
+output_folder = "../Output/ar6wg3draft2/separate_models/peaking/"
 # Output file location for budget data. Includes {} sections detailing inclusion of
 # TCRE, inclusion of magic/fair, earth system feedback and likelihood. More added later
 output_file = (
@@ -119,7 +119,8 @@ temp_offset_years = np.arange(2010, 2020, 1)
 # Use permafrost may be True, False or both
 List_use_permafrost = [False]
 List_vetting = [
-    "aim", "coffee", "gcam", "image", "message", "poles", "remind", "witch"
+    "aim", "coffee", "gcam", "image",
+    "message", "poles", "remind", "witch"
 ]
 # ______________________________________________________________________________________
 # The parts below should not need editing
