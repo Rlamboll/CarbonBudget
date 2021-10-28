@@ -203,3 +203,57 @@ def test_scenario_filter():
     assert len(fewer_scenarios) == 2
     assert len(all_scenarios) == 3
     assert [i for i in all_scenarios.index if i not in fewer_scenarios.index] == [("REMIND_1_5", "World", "not good ")]
+    assert all(
+        fewer_scenarios.index.get_level_values("scenario") == ["Fine", "Acceptable"]
+    )
+
+def test_scenario_filter_official_NZ():
+    magicc_file_for_tests_to_use = "magicc_file_for_tests_to_use_many_scenarios.csv"
+    total_magicc_file = "magicc_file_for_tests_to_use_totaltemp_many_scenarios.csv"
+    vetting_file = "metadata_indicators_test.xlsx"
+    magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.5.1|10.0th Percentile"
+    magicc_tot_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.5.1|10.0th Percentile"
+    emissions_file = "emissions_test_file_many_scen.csv"
+    offset_years = np.arange(2010, 2020, 1)
+    # The name of the peak temperature column output
+    fewer_scenarios = distributions.load_data_from_MAGICC(
+        magicc_file_for_tests_to_use,
+        total_magicc_file,
+        emissions_file,
+        magicc_nonco2_temp_variable,
+        magicc_tot_temp_variable,
+        magicc_nonco2_temp_variable,
+        magicc_tot_temp_variable,
+        offset_years,
+        vetted_scen_list_file=vetting_file,
+        peak_version="officialNZ",
+        permafrost=True,
+    )
+    with pytest.raises(UnboundLocalError):
+        distributions.load_data_from_MAGICC(
+            magicc_file_for_tests_to_use,
+            total_magicc_file,
+            emissions_file,
+            magicc_nonco2_temp_variable,
+            magicc_tot_temp_variable,
+            magicc_nonco2_temp_variable,
+            magicc_tot_temp_variable,
+            offset_years,
+            peak_version="officialNZ",
+            permafrost=True,
+        )
+    # One of the passing years doesn't peak, so one of the 4 scenarios always fails
+    assert len(fewer_scenarios) == 2
+    assert all(
+        fewer_scenarios.index.get_level_values("scenario") == ["Acceptable", "Acceptable"]
+    )
+    # Caculate the expected temp from the excel file directly
+    expected_remind_accept = 0.324777364 - np.mean([
+        -0.01125151, -0.020053354, -0.020859599, -0.017984689, -0.012561602,
+        -0.007388461, -0.000822226, 0.003277905, 0.006592823, 0.008149571
+    ])
+
+    assert np.isclose(
+        fewer_scenarios.loc[("REMIND_1_5", "World", "Acceptable"),
+        magicc_tot_temp_variable], expected_remind_accept
+    )
