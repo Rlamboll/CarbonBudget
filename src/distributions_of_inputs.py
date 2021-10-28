@@ -128,11 +128,14 @@ def load_data_from_MAGICC(
     # Drop empty columns from the dataframe and calculate the year the emissions go to
     # zero
     if vetted_scen_list_file:
+        nzyearcol = "year of netzero CO2 emissions"
         vetted_scens = pd.read_excel(
             vetted_scen_list_file, sheet_name="meta_Ch3vetted_withclimate"
-        ).loc[:, ["model", "scenario", "exclude"]]
+        ).loc[:, ["model", "scenario", "exclude", nzyearcol]]
         assert all(vetted_scens.exclude == 0)
-        vetted_scens = vetted_scens.drop("exclude", axis=1)
+        if peak_version and (peak_version == "officialNZ"):
+            vetted_scens_nzyears = vetted_scens
+        vetted_scens = vetted_scens.drop(["exclude", nzyearcol], axis=1)
     else:
         vetted_scens = None
 
@@ -188,6 +191,15 @@ def load_data_from_MAGICC(
         elif peak_version == "nonCO2AtPeakTot":
             max_year = np.where(max(tot_df.loc[ind]) == tot_df.loc[ind])[0]
             temp = non_co2_df.loc[ind].iloc[max_year]
+        elif peak_version == "officialNZ":
+            max_year = vetted_scens_nzyears.loc[
+                (vetted_scens_nzyears.model == ind[0]) & (vetted_scens_nzyears.scenario == ind[2])
+            ][nzyearcol].iloc[0]
+            if not np.isnan(max_year):
+                temp = non_co2_df.loc[ind, max_year]
+            else:
+                temp_df = temp_df.drop(ind)
+                continue
         else:
             raise ValueError("Invalid choice for peak_version {}".format(peak_version))
         temp_df[non_co2_col][ind] = temp - non_co2_df.loc[ind][offset_years].mean()
