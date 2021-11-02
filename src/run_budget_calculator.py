@@ -1,7 +1,3 @@
-# unclear why I needed this...
-import sys
-sys.path.append("..")
-
 import numpy as np
 import pandas as pd
 import src.distributions_of_inputs as distributions
