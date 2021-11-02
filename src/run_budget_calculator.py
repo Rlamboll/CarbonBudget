@@ -42,6 +42,7 @@ recent_emissions = 208.81  # 0
 quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
 # Name of the output folder
 output_folder = "../Output/ar6wg3draft2/peakingInvest/"
+output_folder = "../Output/sr15-scenarios-ccbox71-magicc/peakingInvest/"
 # Output file location for budget data. Includes {} sections detailing inclusion of
 # TCRE, inclusion of magic/fair, earth system feedback and likelihood. More added later
 output_file = (
@@ -78,21 +79,28 @@ output_all_trends = output_folder + "TrendLinesWithMagicc_permaf_{}.pdf"
 # If "officialNZ" uses the date of net zero in the metadata used to validate the
 # scenarios - validation file must also be used.
 peak_version = "officialNZ"  # "nonCO2AtPeakTot"
+# peak_version = None
+
 output_file += "_" + str(peak_version) + "_recEm" + str(round(recent_emissions)) + ".csv"
 output_figure_file += "_" + str(peak_version) + ".pdf"
 # The folder and files in which we find the MAGICC model estimate for the non-carbon and
 # carbon contributions to temperature change.
 input_folder = "../InputData/second_iteration_AR6emWG3scen/"
+# input_folder = "../InputData/MAGICCCCB71_sr15scen/"
 # The files are stored with a job number
-jobno = 20211019
+# AR6 WG3
+jobno = "20211019-ar6"
+# SR1.5 with MAGICC as in CCBox 7.1
+# jobno = "20211014-sr15"
+
 non_co2_magicc_file_permafrost = (
-    input_folder + f"job-{jobno}-ar6-nonco2_Raw-GSAT-Non-CO2.csv"
+    input_folder + f"job-{jobno}-nonco2_Raw-GSAT-Non-CO2.csv"
 )
 non_co2_magicc_file_no_permafrost = non_co2_magicc_file_permafrost
-tot_magicc_file_permafrost = input_folder + f"job-{jobno}-ar6-nonco2_Raw-GSAT.csv"
+tot_magicc_file_permafrost = input_folder + f"job-{jobno}-nonco2_Raw-GSAT.csv"
 tot_magicc_file_nopermafrost = tot_magicc_file_permafrost
 # The file in which we find the emissions data
-emissions_file = input_folder + f"job-{jobno}-ar6-nonco2_Emissions-CO2.csv"
+emissions_file = input_folder + f"job-{jobno}-nonco2_Emissions-CO2.csv"
 # The name of the non-CO2 warming column output from in the MAGICC model file analysis
 magicc_non_co2_col = (
     "non-co2 warming (rel. to 2010-2019) at peak cumulative emissions co2"
@@ -102,12 +110,18 @@ magicc_temp_col = "peak surface temperature (rel. to 2010-2019)"
 # The percentile to use for non-CO2 temperature change (for each scenario separately)
 nonco2_percentile = 50
 # The names of the temperature variables in MAGICC files (also specifies the quantile)
+magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.5.3|{}.0th Percentile".format(
+    nonco2_percentile
+)
+magicc_tot_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.5.3|50.0th Percentile"
+
 magicc_nonco2_temp_variable = "AR6 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.5.3|{}.0th Percentile".format(
     nonco2_percentile
 )
 magicc_tot_temp_variable = "AR6 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.5.3|50.0th Percentile"
 # We also check that the scenarios used in the MAGICC are those that pass the vetting process
 vetted_scen_list_file = input_folder + "ar6_full_metadata_indicators2021_10_14_v3.xlsx"
+vetted_scen_list_file_sheet = "meta_Ch3vetted_withclimate"
 # Do we want to save the output of the MAGICC analysis? If so, give a file name with a
 # variable in it. Otherwise leave as None
 magicc_savename = output_folder + "magicc_nonCO2_temp_{}Percentile".format(
@@ -144,6 +158,7 @@ for use_permafrost in List_use_permafrost:
         peak_version,
         permafrost=use_permafrost,
         vetted_scen_list_file=vetted_scen_list_file,
+        vetted_scen_list_file_sheet=vetted_scen_list_file_sheet,
     )
     try:
         magicc_db = magicc_db_full[magicc_db_full["hits_net_zero"]].drop("hits_net_zero", axis="columns")
