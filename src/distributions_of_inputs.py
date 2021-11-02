@@ -95,6 +95,7 @@ def load_data_from_MAGICC(
     peak_version=None,
     permafrost=None,
     vetted_scen_list_file=None,
+    vetted_scen_list_file_sheet=None,
 ):
     """
     Loads the non-CO2 warming and total warming from files in the format output by
@@ -130,7 +131,7 @@ def load_data_from_MAGICC(
     if vetted_scen_list_file:
         nzyearcol = "year of netzero CO2 emissions"
         vetted_scens = pd.read_excel(
-            vetted_scen_list_file, sheet_name="meta_Ch3vetted_withclimate"
+            vetted_scen_list_file, sheet_name=vetted_scen_list_file_sheet
         ).loc[:, ["model", "scenario", "exclude", nzyearcol]]
         assert all(vetted_scens.exclude == 0)
         if peak_version and (peak_version == "officialNZ"):
@@ -147,6 +148,7 @@ def load_data_from_MAGICC(
     ]
     yeardf.drop(empty_cols, axis=1, inplace=True)
     scenario_cols = ["model", "region", "scenario"]
+
     del yeardf["unit"]
     total_co2 = yeardf.groupby(scenario_cols).sum()
     if not peak_version:
@@ -211,6 +213,54 @@ def load_data_from_MAGICC(
     return temp_df
 
 
+def rename_scenario_to_sr15_names(s):
+    replacements = (
+        ("SocioeconomicFactorCM", "SFCM"),
+        ("TransportERL", "TERL"),
+    )
+    out = s
+
+    for old, new in replacements:
+        out = out.replace(old, new)
+
+    return out
+
+
+def rename_model_to_sr15_names(m):
+    replacements = (
+        ("AIM_", "AIM/CGE "),
+        ("2_0", "2.0"),
+        ("2_1", "2.1"),
+        ("5_005", "5.005"),
+        ("GCAM_4_2", "GCAM 4.2"),
+        ("WEM", "IEA World Energy Model 2017"),
+        ("IMAGE_", "IMAGE "),
+        ("3_0_1", "3.0.1"),
+        ("3_0_2", "3.0.2"),
+        ("MERGE-ETL_6_0", "MERGE-ETL 6.0"),
+        ("MESSAGE-GLOBIOM_1_0", "MESSAGE-GLOBIOM 1.0"),
+        ("MESSAGE_V_3", "MESSAGE V.3"),
+        ("MESSAGEix-GLOBIOM_1_0", "MESSAGEix-GLOBIOM 1.0"),
+        ("POLES_", "POLES "),
+        ("CDL", "CD-LINKS"),
+        ("REMIND_", "REMIND "),
+        ("REMIND-MAgPIE_", "REMIND-MAgPIE "),
+        ("1_5", "1.5"),
+        ("1_7", "1.7"),
+        ("3_0", "3.0"),
+        ("WITCH-GLOBIOM_", "WITCH-GLOBIOM "),
+        ("3_1", "3.1"),
+        ("4_2", "4.2"),
+        ("4_4", "4.4"),
+    )
+    out = m
+
+    for old, new in replacements:
+        out = out.replace(old, new)
+
+    return out
+
+
 def _clean_columns_magicc(df, vetted_scens):
     to_drop_cols = [
         "Unnamed: 0", "Category", "Category_name",
@@ -242,6 +292,8 @@ def _clean_columns_magicc(df, vetted_scens):
         "Vetted",
     ]
     if vetted_scens is not None:
+        df["model"] = df["model"].apply(rename_model_to_sr15_names)
+        df["scenario"] = df["scenario"].apply(rename_scenario_to_sr15_names)
         df2 = df.merge(vetted_scens, on=["model", "scenario"], indicator="Vetted", how="outer")
         if any(df2.Vetted != "both"):
             print("Excluding data from scenarios: ")
