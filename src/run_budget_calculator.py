@@ -132,7 +132,7 @@ for use_permafrost in List_use_permafrost:
         non_co2_magicc_file = non_co2_magicc_file_no_permafrost
         tot_magicc_file = tot_magicc_file_nopermafrost
 
-    magicc_db = distributions.load_data_from_MAGICC(
+    magicc_db_full = distributions.load_data_from_MAGICC(
         non_co2_magicc_file,
         tot_magicc_file,
         emissions_file,
@@ -145,8 +145,15 @@ for use_permafrost in List_use_permafrost:
         permafrost=use_permafrost,
         vetted_scen_list_file=vetted_scen_list_file,
     )
+    try:
+        magicc_db = magicc_db_full[magicc_db_full["hits_net_zero"]].drop("hits_net_zero", axis="columns")
+    except KeyError:
+        magicc_db = magicc_db_full.copy()
+
     if magicc_savename:
         magicc_db.to_csv(magicc_savename.format(use_permafrost))
+        magicc_db_full.to_csv(magicc_savename.format(use_permafrost).replace('.csv', '-all-scenarios.csv'))
+
     # We interpret the higher quantiles as meaning a smaller budget
     inverse_quantiles_to_report = 1 - quantiles_to_report
     # Construct the container for saved results
