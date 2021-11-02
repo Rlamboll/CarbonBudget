@@ -183,6 +183,8 @@ def load_data_from_MAGICC(
     for ind, row in tot_df.iterrows():
         temp = max(tot_df.loc[ind])
         temp_df[tot_col][ind] = temp - tot_df.loc[ind][offset_years].mean()
+
+    temp_df["hits_net_zero"] = np.nan
     for ind, row in non_co2_df.iterrows():
         if not peak_version:
             temp = non_co2_df.loc[ind][zero_years.loc[ind]]
@@ -195,11 +197,13 @@ def load_data_from_MAGICC(
             max_year = vetted_scens_nzyears.loc[
                 (vetted_scens_nzyears.model == ind[0]) & (vetted_scens_nzyears.scenario == ind[2])
             ][nzyearcol].iloc[0]
+
             if not np.isnan(max_year):
                 temp = non_co2_df.loc[ind, max_year]
+                temp_df.loc[ind, "hits_net_zero"] = True
             else:
-                temp_df = temp_df.drop(ind)
-                continue
+                temp = non_co2_df.loc[ind, 2100]
+                temp_df.loc[ind, "hits_net_zero"] = False
         else:
             raise ValueError("Invalid choice for peak_version {}".format(peak_version))
         temp_df[non_co2_col][ind] = temp - non_co2_df.loc[ind][offset_years].mean()
