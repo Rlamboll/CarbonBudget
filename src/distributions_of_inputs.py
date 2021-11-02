@@ -163,7 +163,7 @@ def load_data_from_MAGICC(
                 )(0)
                 zero_years[index] = np.round(zero_year)
             except IndexError:
-                del zero_years[index]
+                zero_years[index] = np.nan
         temp_df = pd.DataFrame(
             index=zero_years.index, columns=[tot_col, non_co2_col], dtype=np.float64
         )
@@ -189,7 +189,14 @@ def load_data_from_MAGICC(
     temp_df["hits_net_zero"] = np.nan
     for ind, row in non_co2_df.iterrows():
         if not peak_version:
-            temp = non_co2_df.loc[ind][zero_years.loc[ind]]
+            zero_year = zero_years.loc[ind]
+            if not np.isnan(zero_year):
+                temp = non_co2_df.loc[ind][zero_year]
+                temp_df.loc[ind, "hits_net_zero"] = True
+            else:
+                temp = non_co2_df.loc[ind][2100]
+                temp_df.loc[ind, "hits_net_zero"] = False
+
         elif peak_version == "peakNonCO2Warming":
             temp = max(non_co2_df.loc[ind])
         elif peak_version == "nonCO2AtPeakTot":
