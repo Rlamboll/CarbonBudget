@@ -206,7 +206,7 @@ def load_data_from_MAGICC(
                 temp_df.loc[ind, "hits_net_zero"] = False
         else:
             raise ValueError("Invalid choice for peak_version {}".format(peak_version))
-        temp_df[non_co2_col][ind] = temp - non_co2_df.loc[ind][offset_years].mean()
+        temp_df.loc[ind, non_co2_col] = temp - non_co2_df.loc[ind][offset_years].mean()
 
     return temp_df
 
