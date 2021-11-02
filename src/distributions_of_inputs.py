@@ -207,7 +207,7 @@ def load_data_from_MAGICC(
                 (vetted_scens_nzyears.model == ind[0]) & (vetted_scens_nzyears.scenario == ind[2])
             ][nzyearcol].iloc[0]
 
-            if not np.isnan(max_year):
+            if not np.isnan(max_year) and np.isfinite(max_year):
                 temp = non_co2_df.loc[ind, max_year]
                 temp_df.loc[ind, "hits_net_zero"] = True
             else:
