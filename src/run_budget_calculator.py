@@ -154,8 +154,6 @@ for use_permafrost in List_use_permafrost:
         magicc_db.to_csv(magicc_savename.format(use_permafrost))
         magicc_db_full.to_csv(magicc_savename.format(use_permafrost).replace('.csv', '-all-scenarios.csv'))
 
-
-
     # We interpret the higher quantiles as meaning a smaller budget
     inverse_quantiles_to_report = 1 - quantiles_to_report
     # Construct the container for saved results
