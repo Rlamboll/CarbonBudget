@@ -48,7 +48,7 @@ recent_emissions = 208.81  # 0
 quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
 # Name of the output folder
 output_folder = "../Output/ar6wg3draft2/peakingInvest/"
-# output_folder = "../Output/sr15-scenarios-ccbox71-magicc/peakingInvest/"
+output_folder = "../Output/sr15-scenarios-ccbox71-magicc/peakingInvest/"
 # output_folder = "../Output/sr15-scenarios-meinsahusen-magicc/peakingInvest/"
 os.makedirs(output_folder, exist_ok=True)
 
@@ -95,13 +95,13 @@ output_figure_file += "_" + str(peak_version) + ".pdf"
 # The folder and files in which we find the MAGICC model estimate for the non-carbon and
 # carbon contributions to temperature change.
 input_folder = "../InputData/second_iteration_AR6emWG3scen/"
-# input_folder = "../InputData/MAGICCCCB71_sr15scen/"
+input_folder = "../InputData/MAGICCCCB71_sr15scen/"
 # input_folder = "../InputData/MAGICCMeinshausenInputs_sr15scen/"
 # The files are stored with a job number
 # AR6 WG3
 jobno = "20211019-ar6"
 # SR1.5 with MAGICC as in CCBox 7.1
-# jobno = "20211014-sr15"
+jobno = "20211014-sr15"
 # # SR1.5 with MAGICC using Meinshausen et al. (2020) input files (as was used for WG1 RCB calculations)
 # jobno = "20210224-sr15"
 
@@ -126,10 +126,10 @@ magicc_nonco2_temp_variable = "AR6 climate diagnostics|Raw Surface Temperature (
     nonco2_percentile
 )
 magicc_tot_temp_variable = "AR6 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.5.3|50.0th Percentile"
-# magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.5.3|{}.0th Percentile".format(
-#     nonco2_percentile
-# )
-# magicc_tot_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.5.3|50.0th Percentile"
+magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.5.3|{}.0th Percentile".format(
+    nonco2_percentile
+)
+magicc_tot_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.5.3|50.0th Percentile"
 # magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.5.1|{}.0th Percentile".format(
 #     nonco2_percentile
 # )
@@ -138,8 +138,8 @@ magicc_tot_temp_variable = "AR6 climate diagnostics|Raw Surface Temperature (GSA
 # We also check that the scenarios used in the MAGICC are those that pass the vetting process
 vetted_scen_list_file = input_folder + "ar6_full_metadata_indicators2021_10_14_v3.xlsx"
 vetted_scen_list_file_sheet = "meta_Ch3vetted_withclimate"
-# vetted_scen_list_file = input_folder + "sr15_scenario_runs_mocked_vetting.xlsx"
-# vetted_scen_list_file_sheet = "Sheet1"
+vetted_scen_list_file = input_folder + "sr15_scenario_runs_mocked_vetting.xlsx"
+vetted_scen_list_file_sheet = "Sheet1"
 # Do we want to save the output of the MAGICC analysis? If so, give a file name with a
 # variable in it. Otherwise leave as None
 magicc_savename = output_folder + "magicc_nonCO2_temp_{}Percentile".format(
