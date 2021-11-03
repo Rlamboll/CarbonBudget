@@ -5,6 +5,43 @@ import scipy.stats
 import scipy.interpolate
 
 
+def rename_model_to_sr15_names(m):
+    replacements = (
+        ("AIM_", "AIM/CGE "),
+        ("2_0", "2.0"),
+        ("2_1", "2.1"),
+        ("5_005", "5.005"),
+        ("GCAM_4_2", "GCAM 4.2"),
+        ("WEM", "IEA World Energy Model 2017"),
+        ("IMAGE_", "IMAGE "),
+        ("3_0_1", "3.0.1"),
+        ("3_0_2", "3.0.2"),
+        ("MERGE-ETL_6_0", "MERGE-ETL 6.0"),
+        ("MESSAGE-GLOBIOM_1_0", "MESSAGE-GLOBIOM 1.0"),
+        ("MESSAGE_V_3", "MESSAGE V.3"),
+        ("MESSAGEix-GLOBIOM_1_0", "MESSAGEix-GLOBIOM 1.0"),
+        ("POLES_", "POLES "),
+        ("CDL", "CD-LINKS"),
+        ("REMIND_", "REMIND "),
+        ("REMIND-MAgPIE_", "REMIND-MAgPIE "),
+        ("1_5", "1.5"),
+        ("1_7", "1.7"),
+        ("3_0", "3.0"),
+        ("WITCH-GLOBIOM_", "WITCH-GLOBIOM "),
+        (" 3_1", " 3.1"),
+        ("4_2", "4.2"),
+        ("4_4", "4.4"),  # Added
+        ("SocioeconomicFactorCM_SSP", "SFCM_SSP"),
+        ("TransportERL_", "TERL_"),
+        ("NCO2.1", "NCO2_1"),
+    )
+    out = m
+
+    for old, new in replacements:
+        out = out.replace(old, new)
+
+    return out
+
 def tcre_distribution(low, high, likelihood, n_return, tcre_dist):
     """
 
@@ -242,6 +279,8 @@ def _clean_columns_magicc(df, vetted_scens):
         "Vetted",
     ]
     if vetted_scens is not None:
+        df["scenario"] = df["scenario"].apply(rename_model_to_sr15_names)
+        df["model"] = df["model"].apply(rename_model_to_sr15_names)
         df2 = df.merge(vetted_scens, on=["model", "scenario"], indicator="Vetted", how="outer")
         if any(df2.Vetted != "both"):
             print("Excluding data from scenarios: ")
