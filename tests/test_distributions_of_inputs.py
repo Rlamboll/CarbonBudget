@@ -165,6 +165,7 @@ def test_magicc_loader_works_with_permafrost():
 
 
 def test_scenario_filter():
+    # We provide a set of 4 scenarios, one of which is not found in the vetting database
     magicc_file_for_tests_to_use = "magicc_file_for_tests_to_use_many_scenarios.csv"
     total_magicc_file = "magicc_file_for_tests_to_use_totaltemp_many_scenarios.csv"
     vetting_file = "metadata_indicators_test.xlsx"
@@ -183,6 +184,7 @@ def test_scenario_filter():
         magicc_tot_temp_variable,
         offset_years,
         vetted_scen_list_file=vetting_file,
+        vetted_scen_list_file_sheet="meta_Ch3vetted_withclimate",
         peak_version=None,
         permafrost=True,
     )
@@ -200,11 +202,16 @@ def test_scenario_filter():
         permafrost=True,
     )
     # One of the passing years doesn't peak, so one of the 4 scenarios always fails
-    assert len(fewer_scenarios) == 2
-    assert len(all_scenarios) == 3
-    assert [i for i in all_scenarios.index if i not in fewer_scenarios.index] == [("REMIND_1_5", "World", "not good ")]
+    assert len(fewer_scenarios[fewer_scenarios["hits_net_zero"] == True]) == 2
+    assert len(fewer_scenarios) == 3
+    assert len(all_scenarios) == 4
+    assert len(all_scenarios[all_scenarios["hits_net_zero"] == True]) == 3
+    assert [
+               i for i in all_scenarios[all_scenarios["hits_net_zero"] == True].index if
+               i not in fewer_scenarios[fewer_scenarios["hits_net_zero"] == True].index
+           ] == [("REMIND_1_5", "World", "not good ")]
     assert all(
-        fewer_scenarios.index.get_level_values("scenario") == ["Fine", "Acceptable"]
+        fewer_scenarios[fewer_scenarios["hits_net_zero"] == True].index.get_level_values("scenario") == ["Fine", "Acceptable"]
     )
 
 def test_scenario_filter_official_NZ():
@@ -228,6 +235,8 @@ def test_scenario_filter_official_NZ():
         vetted_scen_list_file=vetting_file,
         peak_version="officialNZ",
         permafrost=True,
+        vetted_scen_list_file_sheet="meta_Ch3vetted_withclimate",
+        sr15_rename=False,
     )
     with pytest.raises(UnboundLocalError):
         distributions.load_data_from_MAGICC(
@@ -241,6 +250,7 @@ def test_scenario_filter_official_NZ():
             offset_years,
             peak_version="officialNZ",
             permafrost=True,
+            sr15_rename=False,
         )
     fewer_scenarios = more_scenarios[more_scenarios["hits_net_zero"] == True]
     # One of the passing years doesn't peak, so one of the 4 scenarios always fails

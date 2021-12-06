@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pandas as pd
 import src.distributions_of_inputs as distributions
@@ -40,10 +42,24 @@ earth_feedback_co2_per_C_stdv = 26.7 * convert_PgC_to_GtCO2
 recent_emissions = 208.81  # 0
 # We will present the budgets at these probability quantiles.
 quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
+# Run version should be ar6wg3, sr15ccbox71, or sr15meins, corresponding to running the
+# code using the AR6 database for WG3, or the SR1.5 database with either the cross-
+# chapter box 7.1 results or the Meinshausen results.
+
+runver = "ar6wg3"
+
 # Name of the output folder
-output_folder = "../Output/ar6wg3draft2/peakingInvest/"
-output_folder = "../Output/sr15-scenarios-ccbox71-magicc/peakingInvest/"
-output_folder = "../Output/sr15-scenarios-meinsahusen-magicc/peakingInvest/"
+if runver == "ar6wg3":
+    output_folder = "../Output/ar6wg3draft2/peakingRewrite/"
+    arsr = "ar6"
+elif runver == "sr15ccbox71":
+    output_folder = "../Output/sr15-scenarios-ccbox71-magicc/peakingRewrite/"
+    arsr = "sr15"
+elif runver == "sr15meins":
+    output_folder = "../Output/sr15-scenarios-meinsahusen-magicc/peakingRewrite/"
+    arsr = "sr15"
+else:
+    raise ValueError(f"runver {runver} not available, choose ar6wg3, sr15ccbox71 or sr15meins")
 os.makedirs(output_folder, exist_ok=True)
 
 # Output file location for budget data. Includes {} sections detailing inclusion of
@@ -86,18 +102,36 @@ peak_version = None
 
 output_file += "_" + str(peak_version) + "_recEm" + str(round(recent_emissions)) + ".csv"
 output_figure_file += "_" + str(peak_version) + ".pdf"
-# The folder and files in which we find the MAGICC model estimate for the non-carbon and
-# carbon contributions to temperature change.
-input_folder = "../InputData/second_iteration_AR6emWG3scen/"
-input_folder = "../InputData/MAGICCCCB71_sr15scen/"
-input_folder = "../InputData/MAGICCMeinshausenInputs_sr15scen/"
-# The files are stored with a job number
-# AR6 WG3
-jobno = "20211019-ar6"
-# SR1.5 with MAGICC as in CCBox 7.1
-jobno = "20211014-sr15"
-# # SR1.5 with MAGICC using Meinshausen et al. (2020) input files (as was used for WG1 RCB calculations)
-jobno = "20210224-sr15"
+
+# We wish to recall one of several MAGICC runs, depending on the situation
+if runver == "ar6wg3":
+    # AR6 WG3.
+    # Strings to describe the runs, filed with a job number
+    jobno = "20211019-ar6"
+    magiccver = "7.5.3"
+    # The folder and files in which we find the MAGICC model estimate for the non-carbon
+    # and carbon contributions to temperature change.
+    input_folder = "../InputData/second_iteration_AR6emWG3scen/"
+    # We also check that the scenarios used in the MAGICC are those that pass the vetting process
+    vetted_scen_list_file = input_folder + "ar6_full_metadata_indicators2021_10_14_v3.xlsx"
+    vetted_scen_list_file_sheet = "meta_Ch3vetted_withclimate"
+elif runver == "sr15ccbox71":
+    # SR1.5 with MAGICC as in CCBox 7.1
+    jobno = "20211014-sr15"
+    magiccver = "7.5.3"
+    input_folder = "../InputData/MAGICCCCB71_sr15scen/"
+    # We use a compound vetting file
+    vetted_scen_list_file = input_folder + "sr15_scenario_runs_mocked_vetting.xlsx"
+    vetted_scen_list_file_sheet = "Sheet1"
+elif runver == "ar15meins":
+    # # SR1.5 with MAGICC using Meinshausen et al. (2020) input files (as was used for WG1 RCB calculations)
+    jobno = "20210224-sr15"
+    magiccver = "7.5.1"
+    input_folder = "../InputData/MAGICCMeinshausenInputs_sr15scen/"
+    vetted_scen_list_file = input_folder + "sr15_scenario_runs_mocked_vetting.xlsx"
+    vetted_scen_list_file_sheet = "Sheet1"
+else:
+    raise ValueError(f"runver {runver} not available, choose ar6wg3, sr15ccbox71 or sr15meins")
 
 non_co2_magicc_file_permafrost = (
     input_folder + f"job-{jobno}-nonco2_Raw-GSAT-Non-CO2.csv"
@@ -116,24 +150,12 @@ magicc_temp_col = "peak surface temperature (rel. to 2010-2019)"
 # The percentile to use for non-CO2 temperature change (for each scenario separately)
 nonco2_percentile = 50
 # The names of the temperature variables in MAGICC files (also specifies the quantile)
-magicc_nonco2_temp_variable = "AR6 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.5.3|{}.0th Percentile".format(
-    nonco2_percentile
+magicc_nonco2_temp_variable = "{} climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv{}|{}.0th Percentile".format(
+    arsr.upper(), magiccver, nonco2_percentile
 )
-magicc_tot_temp_variable = "AR6 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.5.3|50.0th Percentile"
-magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.5.3|{}.0th Percentile".format(
-    nonco2_percentile
+magicc_tot_temp_variable = "{} climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv{}|50.0th Percentile".format(
+    arsr.upper(), magiccver
 )
-magicc_tot_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.5.3|50.0th Percentile"
-magicc_nonco2_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|Non-CO2|MAGICCv7.5.1|{}.0th Percentile".format(
-    nonco2_percentile
-)
-magicc_tot_temp_variable = "SR15 climate diagnostics|Raw Surface Temperature (GSAT)|MAGICCv7.5.1|50.0th Percentile"
-
-# We also check that the scenarios used in the MAGICC are those that pass the vetting process
-vetted_scen_list_file = input_folder + "ar6_full_metadata_indicators2021_10_14_v3.xlsx"
-vetted_scen_list_file_sheet = "meta_Ch3vetted_withclimate"
-vetted_scen_list_file = input_folder + "sr15_scenario_runs_mocked_vetting.xlsx"
-vetted_scen_list_file_sheet = "Sheet1"
 # Do we want to save the output of the MAGICC analysis? If so, give a file name with a
 # variable in it. Otherwise leave as None
 magicc_savename = output_folder + "magicc_nonCO2_temp_{}Percentile".format(
@@ -151,6 +173,7 @@ t0 = time.time()
 if peak_version and (peak_version == "officialNZ"):
     assert vetted_scen_list_file is not None
 for use_permafrost in List_use_permafrost:
+    sr15_rename = (arsr == "sr15")
     if use_permafrost:
         non_co2_magicc_file = non_co2_magicc_file_permafrost
         tot_magicc_file = tot_magicc_file_permafrost
@@ -171,6 +194,7 @@ for use_permafrost in List_use_permafrost:
         permafrost=use_permafrost,
         vetted_scen_list_file=vetted_scen_list_file,
         vetted_scen_list_file_sheet=vetted_scen_list_file_sheet,
+        sr15_rename=sr15_rename,
     )
     try:
         magicc_db = magicc_db_full[magicc_db_full["hits_net_zero"]].drop("hits_net_zero", axis="columns")

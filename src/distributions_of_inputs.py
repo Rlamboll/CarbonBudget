@@ -96,6 +96,7 @@ def load_data_from_MAGICC(
     permafrost=None,
     vetted_scen_list_file=None,
     vetted_scen_list_file_sheet=None,
+    sr15_rename=False
 ):
     """
     Loads the non-CO2 warming and total warming from files in the format output by
@@ -122,6 +123,9 @@ def load_data_from_MAGICC(
         read. Otherwise the files must have a permafrost column for this to filter.
     :param vetted_scen_list_file: excel file with the list of accepted model/scenario
         combos.
+    :param sr15_rename: Boolean, indicates whether or not the model and scenario names
+        in the vetted_scen_list_file need to be corrected to align with the names used
+        in the other files.
 
     :return: pd.Dataframe
     """
@@ -141,7 +145,7 @@ def load_data_from_MAGICC(
         vetted_scens = None
 
 
-    yeardf = _clean_columns_magicc(yeardf, vetted_scens)
+    yeardf = _clean_columns_magicc(yeardf, vetted_scens, sr15_rename=sr15_rename)
     empty_cols = [
         col for col in yeardf.columns
         if ((yeardf[col].isnull().all()) or (col == "permafrost"))
@@ -175,11 +179,11 @@ def load_data_from_MAGICC(
     # Do this for both non-CO2 and CO2-only temperature.
     non_co2_df = _read_and_clean_magicc_csv(
         scenario_cols, temp_df, magicc_nonco2_temp_variable, non_co2_magicc_file,
-        vetted_scens, use_permafrost=permafrost
+        vetted_scens, use_permafrost=permafrost, sr15_rename=sr15_rename
     )
     tot_df = _read_and_clean_magicc_csv(
         scenario_cols, temp_df, tot_temp_variable, tot_magicc_file,
-        vetted_scens, use_permafrost=permafrost
+        vetted_scens, use_permafrost=permafrost, sr15_rename=sr15_rename
     )
     # For each scenario, we subtract the average temperature from the offset years
     for ind, row in tot_df.iterrows():
@@ -268,7 +272,7 @@ def rename_model_to_sr15_names(m):
     return out
 
 
-def _clean_columns_magicc(df, vetted_scens):
+def _clean_columns_magicc(df, vetted_scens, sr15_rename):
     to_drop_cols = [
         "Unnamed: 0", "Category", "Category_name",
         "Exceedance Probability 1.5C (MAGICCv7.5.3)",
@@ -299,12 +303,13 @@ def _clean_columns_magicc(df, vetted_scens):
         "Vetted",
     ]
     if vetted_scens is not None:
-        df["model"] = df["model"].apply(rename_model_to_sr15_names)
-        df["scenario"] = df["scenario"].apply(rename_scenario_to_sr15_names)
+        if sr15_rename:
+            df["model"] = df["model"].apply(rename_model_to_sr15_names)
+            df["scenario"] = df["scenario"].apply(rename_scenario_to_sr15_names)
         df2 = df.merge(vetted_scens, on=["model", "scenario"], indicator="Vetted", how="outer")
         if any(df2.Vetted != "both"):
             print("Excluding data from scenarios: ")
-            print(df2.loc[df2.Vetted != "both"])
+            print(df2.loc[df2.Vetted != "both"][["model", "scenario"]])
             df2 = df2.loc[df2.Vetted == "both"]
         df = df2
     to_drop_cols = [col for col in to_drop_cols if col in df.columns]
@@ -312,12 +317,12 @@ def _clean_columns_magicc(df, vetted_scens):
 
 
 def _read_and_clean_magicc_csv(
-        scenario_cols, temp_df, temp_variable, warmingfile, vetted_scens, use_permafrost=None
+        scenario_cols, temp_df, temp_variable, warmingfile, vetted_scens, use_permafrost=None, sr15_rename=False,
 ):
     df = pd.read_csv(warmingfile)
     # The following columns may be present and aren't wanted
     # (Unnamed: 0 comes from an untitled index column)
-    df = _clean_columns_magicc(df, vetted_scens=vetted_scens)
+    df = _clean_columns_magicc(df, vetted_scens=vetted_scens, sr15_rename=sr15_rename)
     if use_permafrost is not None:
         if "permafrost" in df.columns:
             df = df[df.permafrost == use_permafrost]

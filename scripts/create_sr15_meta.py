@@ -3,11 +3,11 @@ import os.path
 import pandas as pd
 
 
-AR6_WG3_META_FILE = os.path.join("InputData", "MAGICCCCB71_sr15scen", "ar6_full_metadata_indicators2021_10_14_v3.xlsx")
-SR15_META_FILE = os.path.join("InputData", "sr15_metadata_indicators_r2.0.xlsx")
-SR15_RUNS_OUTPUT_FILE = os.path.join("InputData", "MAGICCCCB71_sr15scen", "job-20211014-sr15-nonco2_Emissions-CO2.csv")
+AR6_WG3_META_FILE = os.path.join("..", "InputData", "MAGICCCCB71_sr15scen", "ar6_full_metadata_indicators2021_10_14_v3.xlsx")
+SR15_META_FILE = os.path.join("..", "InputData", "sr15_metadata_indicators_r2.0.xlsx")
+SR15_RUNS_OUTPUT_FILE = os.path.join("..", "InputData", "MAGICCCCB71_sr15scen", "job-20211014-sr15-nonco2_Emissions-CO2.csv")
 
-OUT_FILE = os.path.join("InputData", "sr15_scenario_runs_mocked_vetting.xlsx")
+OUT_FILE = os.path.join("..", "InputData", "sr15_scenario_runs_mocked_vetting.xlsx")
 
 
 ar6_wg3_meta = pd.read_excel(AR6_WG3_META_FILE, sheet_name="meta")
