@@ -116,14 +116,14 @@ if runver == "ar6wg3":
     vetted_scen_list_file = input_folder + "ar6_full_metadata_indicators2021_10_14_v3.xlsx"
     vetted_scen_list_file_sheet = "meta_Ch3vetted_withclimate"
 elif runver == "sr15ccbox71":
-    # SR1.5 with MAGICC as in CCBox 7.1
+    # SR1.5 with later MAGICC version as in CCBox 7.1
     jobno = "20211014-sr15"
     magiccver = "7.5.3"
     input_folder = "../InputData/MAGICCCCB71_sr15scen/"
     # We use a compound vetting file
     vetted_scen_list_file = input_folder + "sr15_scenario_runs_mocked_vetting.xlsx"
     vetted_scen_list_file_sheet = "Sheet1"
-elif runver == "ar15meins":
+elif runver == "sr15meins":
     # # SR1.5 with MAGICC using Meinshausen et al. (2020) input files (as was used for WG1 RCB calculations)
     jobno = "20210224-sr15"
     magiccver = "7.5.1"
