@@ -7,14 +7,15 @@ import src.budget_calculator_functions as budget_func
 import matplotlib.pyplot as plt
 import time
 
-# Input values
+## Input values
+# Edit as required
 # ______________________________________________________________________________________
 
 # The target temperature changes to achieve. (Units: C)
 dT_targets = np.arange(1.1, 2.6, 0.1)
 # The number of loops performed for each temperature. Runs in seconds for ~ 10^6, higher
 # reduces statistical error but takes longer
-n_loops = 100000000
+n_loops = 10000000
 # The change in temperature that will occur after zero emissions has been reached.
 # (Units: C)
 zec = 0.0
@@ -25,6 +26,7 @@ historical_dT = 1.07
 # case matching the mean and sd of the normal distribution which fits the likelihood,
 # in the second case matching the likelihood limits itself but exhibiting some skew.
 tcre_dist = "normal"
+# Constant to convert between Pg C and Gt CO2.
 convert_PgC_to_GtCO2 = 3.664
 # The upper and lower bounds of the distribution of TCRE. We use units of degC per GtCO2
 # (TCRE = Transient climate response to cumulative carbon emissions)
@@ -35,31 +37,34 @@ likelihood = 0.6827
 # Average CO2 emissions per degree C from temperature-dependent Earth feedback loops.
 # (Units: GtCO2/C)
 earth_feedback_co2_per_C_av = 7.1 * convert_PgC_to_GtCO2
+# Standard dev of CO2 emissions per degree C from temperature-dependent Earth feedback
 # St dev CO2 emissions per degree C from temperature-dependent Earth feedback loops.
+# loops (Units: Gt CO2/C).
 earth_feedback_co2_per_C_stdv = 26.7 * convert_PgC_to_GtCO2
 # Any emissions that have taken place too recently to have factored into the measured
 # temperature change, and therefore must be subtracted from the budget (Units: GtCO2)
 recent_emissions = 208.81  # 0
 # We will present the budgets at these probability quantiles.
 quantiles_to_report = np.array([0.17, 0.33, 0.5, 0.66, 0.83])
-# Run version should be ar6wg3, sr15ccbox71, or sr15meins, corresponding to running the
-# code using the AR6 database for WG3, or the SR1.5 database with either the cross-
-# chapter box 7.1 results or the Meinshausen results.
 
+# Run version should be ar6wg3, sr15ccbox71, or sr15wg1, corresponding to running the
+# code using the AR6 database for WG3, or the SR1.5 database with either the cross-
+# chapter box 7.1/ Nicholls 2021 configuration of MAGICC or the older Meinshausen 2020
+# configuration, as was used in the WG1 report.
 runver = "ar6wg3"
 
 # Name of the output folder
 if runver == "ar6wg3":
-    output_folder = "../Output/ar6wg3draft2/peakingRewrite/"
+    output_folder = "../Output/ar6wg3draft2/"
     arsr = "ar6"
 elif runver == "sr15ccbox71":
-    output_folder = "../Output/sr15-scenarios-ccbox71-magicc/peakingRewrite/"
+    output_folder = "../Output/sr15-scenarios-ccbox71-magicc/"
     arsr = "sr15"
-elif runver == "sr15meins":
-    output_folder = "../Output/sr15-scenarios-meinsahusen-magicc/peakingRewrite/"
+elif runver == "sr15wg1":
+    output_folder = "../Output/sr15-scenarios-meinsahusen-magicc/"
     arsr = "sr15"
 else:
-    raise ValueError(f"runver {runver} not available, choose ar6wg3, sr15ccbox71 or sr15meins")
+    raise ValueError(f"runver {runver} not available, choose ar6wg3, sr15ccbox71 or sr15wg1")
 os.makedirs(output_folder, exist_ok=True)
 
 # Output file location for budget data. Includes {} sections detailing inclusion of
@@ -97,7 +102,6 @@ output_all_trends = output_folder + "TrendLinesWithMagicc_permaf_{}.pdf"
 # temperature.
 # If "officialNZ" uses the date of net zero in the metadata used to validate the
 # scenarios - validation file must also be used.
-peak_version = "officialNZ"  # "nonCO2AtPeakTot"
 peak_version = None
 
 output_file += "_" + str(peak_version) + "_recEm" + str(round(recent_emissions)) + ".csv"
@@ -123,15 +127,15 @@ elif runver == "sr15ccbox71":
     # We use a compound vetting file
     vetted_scen_list_file = input_folder + "sr15_scenario_runs_mocked_vetting.xlsx"
     vetted_scen_list_file_sheet = "Sheet1"
-elif runver == "sr15meins":
+elif runver == "sr15wg1":
     # # SR1.5 with MAGICC using Meinshausen et al. (2020) input files (as was used for WG1 RCB calculations)
     jobno = "20210224-sr15"
     magiccver = "7.5.1"
     input_folder = "../InputData/MAGICCMeinshausenInputs_sr15scen/"
     vetted_scen_list_file = input_folder + "sr15_scenario_runs_mocked_vetting.xlsx"
-    vetted_scen_list_file_sheet = "Sheet1"
+    vetted_scen_list_file_sheet = "meta_Ch3vetted_withclimate"
 else:
-    raise ValueError(f"runver {runver} not available, choose ar6wg3, sr15ccbox71 or sr15meins")
+    raise ValueError(f"runver {runver} not available, choose ar6wg3, sr15ccbox71 or sr15wg1")
 
 non_co2_magicc_file_permafrost = (
     input_folder + f"job-{jobno}-nonco2_Raw-GSAT-Non-CO2.csv"
@@ -164,7 +168,7 @@ magicc_savename = output_folder + "magicc_nonCO2_temp_{}Percentile".format(
 # Years over which we set the average temperature to 0.
 # Note that the upper limit of the range is not included in python.
 temp_offset_years = np.arange(2010, 2020, 1)
-# Use permafrost may be True, False or both
+# Use permafrost may be True, False or both (iterates over the list)
 List_use_permafrost = [False]
 
 # ______________________________________________________________________________________
